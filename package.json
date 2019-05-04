@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "await": "^0.2.6",
+    "axios": "^0.18.0",
+    "bloom-filters": "^0.5.2",
+    "bloomfilter": "^0.0.18",
+    "cheerio": "^1.0.0-rc.3",
+    "esm": "^3.2.22",
+    "log4js": "^4.1.0",
+    "request": "^2.88.0"
+  },
+  "scripts": {
+    "start": "node -r esm index.js"
+  }
+}
