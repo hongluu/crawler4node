@@ -46,11 +46,33 @@ export default class Crawler {
             await this.visit(this.config.origin_url, max_depth) ;    
         }else{
             await this.visit(this.config.origin_url);
+            this.LOGGER.debug("FINISH " + this.config.name)
         }       
-        this.LOGGER.debug("FINISH " + this.config.name)
     }
     
-    async visit (url) {
+    // async visit (url) {
+    //     if (!this._is_existed(url)) {
+    //         this.url_filter.add(url);
+    //         let urls = await this._flip_urls(url);
+    //         console.log(urls.length)
+    //         for (let i = 0; i < urls.length; i++) {
+    //             let cur_url = urls[i];
+    //             if (this._is_existed(cur_url)) {
+    //                 continue
+    //             }
+    //             if (this._is_page_data(cur_url)) {
+    //                 this._get_data(cur_url);
+    //             }
+    //         }
+    //     }
+        
+    // }
+    
+    async visit (url, max_depth) {
+        if (max_depth == 1){
+            this.url_filter.add(url);
+            return;
+        }
         if (!this._is_existed(url)) {
             this.url_filter.add(url);
             let urls = await this._flip_urls(url);
@@ -59,36 +81,15 @@ export default class Crawler {
                 if (this._is_existed(cur_url)) {
                     continue
                 }
-                if (this._is_page_data(cur_url)) {
-                    this._get_data(cur_url);
-                }
-                this.visit(cur_url);
-            }
-        }
-        
-    }
-    
-    async visit (url, max_depth) {
-        if (max_depth == 1){
-            return;
-        }
-        if (!this._is_existed(url)) {
-            this.url_filter.add(url);
-            let urls = await this._flip_urls(url);
-            let seft = this;
-            for(let i =0; i < urls.length; i++){
-                let cur_url = urls[i];
                 //let exported = this.url_filter.saveAsJSON()
                 // this.fs.writeFile(this.config.name + ".json", JSON.stringify(exported), () => { });
-                if (seft._is_should_visit(cur_url)) {
-                    if (seft._is_existed(cur_url)) {
-                        continue
+                if (this._is_should_visit(cur_url)) {
+                    if (this._is_page_data(cur_url)) {
+                        this._get_data(cur_url);
                     }
-                    if (seft._is_page_data(cur_url)) {
-                        seft._get_data(cur_url);
-                    }
-                    seft.visit(cur_url, max_depth - 1);
+                    this.visit(cur_url, max_depth -1);
                 }
+
             }
         }
     }
@@ -108,7 +109,7 @@ export default class Crawler {
         let url_els = $('a');
         for (let i = 0; i < url_els.length; i++){
             let url_a = $(url_els[i]).prop('href');
-            // console.log(url_a);
+            //console.log(url_a);
             if (url_a){
                 if (this._is_existed(url_a)) {
                     continue
