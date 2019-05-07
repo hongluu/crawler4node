@@ -3,14 +3,9 @@
     "await": "^0.2.6",
     "axios": "^0.18.0",
     "bloom-filters": "^0.5.2",
-    "bloomf": "^2.1.5",
-    "bloomfilter": "^0.0.18",
-    "bloomfilter-redis": "^0.1.2",
     "cheerio": "^1.0.0-rc.3",
     "esm": "^3.2.22",
     "log4js": "^4.1.0",
-    "redis": "^2.8.0",
-    "redis-rebloom": "^1.0.0",
     "request": "^2.88.0"
   },
   "scripts": {

@@ -23,7 +23,6 @@ const CONFIG_DEFAULT = {
 };
 
 export default class Crawler {
-    
     constructor(config, logger) {
         this.config = Object.assign(CONFIG_DEFAULT, config);
         this.data = {};
@@ -43,7 +42,6 @@ export default class Crawler {
             let exported = JSON.parse(boomfile);
             return CuckooFilter.fromJSON(exported);
         } catch (e) {
-            console.log(e)
             this.LOGGER.debug("FIRST " + this.config.name + "...")
             return  new CuckooFilter(30000, 400, 8);
         }
@@ -95,6 +93,7 @@ export default class Crawler {
         try {
             html_content = await ARequest(url)
         } catch (e) {
+            this.LOGGER.error(url)
             return [];
         }
         const $ = Cheerio.load(html_content.data)
@@ -103,13 +102,13 @@ export default class Crawler {
         let url_els = $('a');
         for (let i = 0; i < url_els.length; i++) {
             let url_a = $(url_els[i]).prop('href');
-            
             if (url_a) {
                 if (this._is_existed(url_a)) {
                     continue
                 }
                 if (url_a.startsWith("/")) {
                     url_a = base_url + url_a;
+                    // console.log(url_a)
                 }
                 if (this._is_should_visit(url_a)) {
                     list.push(url_a);
@@ -119,7 +118,7 @@ export default class Crawler {
         return list;
     }
 
-    _get_data(url) {
+    async _get_data(url) {
         console.log(url)
     }
 
