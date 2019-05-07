@@ -10,11 +10,24 @@ Crawler4nodejs is an open source web crawler for Node.js which provides a simple
 - [License](#license)
 
 ## Installation
-
-
+```
+npm install crawler4nodejs
+```
+## RUN
+### Update scripts in package.json
+```
+  "scripts": {
+    "start": "node -r esm index.js"
+  }
+```
+### Run
+```
+npm install
+```
 ## Quickstart
-You need to create a crawler class that extends Crawler. This class can override the `get_data()` function. 
-###Example
+You need to create a crawler class that extends Crawler. This class can override the `get_data()` function.  
+
+### Example
 ```
 let config = {
     name: 'crawl-storage-1',
