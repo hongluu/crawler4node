@@ -1,4 +1,6 @@
 {
+  "name": "crawler4nodejs",
+  "version": "0.0.1",
   "dependencies": {
     "await": "^0.2.6",
     "axios": "^0.18.0",
