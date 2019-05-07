@@ -1,14 +1,17 @@
 import ACrawler from "./a_crawler"
-const { CuckooFilter} = require('bloom-filters')
+
 const fs = require("fs")
 // const BloomFilter = require('bloomfilter-redis');
 const redis = require("redis");
 
 const log4js = require('log4js');
+log4js.configure({
+    appenders: { cheese: { type: 'file', filename: 'web-crawler.log' } },
+    categories: { default: { appenders: ['cheese'], level: 'debug' } }
+});
 
 //init log
-let logger = log4js.getLogger();
-logger.level = 'debug';
+let logger = log4js.getLogger("cheese");
 class MyBloom{
     constructor(bloomf){
         this.bloomf = bloomf;
@@ -49,21 +52,16 @@ let config = {
     should_visit_prefix: ['http://tuoitre.vn'],
     page_data_prefix: ['http://tuoitre.vn'],
     ignore_url: [],
-    allway_visit: ["http://tuoitre.vn", "https://tuoitre.vn/thoi-su.htm"],
+    allway_visit: ["http://tuoitre.vn", 
+        "http://tuoitre.vn/caf-co-chu-tich-moi-sau-gan-30-nam-1281830.htm",
+        "http://tuoitre.vn/thoi-su.htm",
+        "http://tuoitre.vn/the-gioi.htm"],
     is_resuming: true,
     max_connections: 1,
-    max_depth:0
+    max_depth:3
 };
 
 
-let filter 
-try{
-    let boomfile = fs.readFileSync(config.name + ".json")
-    let exported = JSON.parse(boomfile);
-    filter = CuckooFilter.fromJSON(exported);
-}catch(e){
-    filter = new CuckooFilter(3000, 4, 4);
-}
 
-let crawler = new ACrawler(config, filter, logger);
+let crawler = new ACrawler(config, logger);
 crawler.restart();
