@@ -29,18 +29,18 @@ You need to create a crawler class that extends Crawler. This class can override
 
 ### Example
 ```
-import Crawler from "./crawler";
+import Crawler from "crawler4nodejs"
 const Request = require('axios')
 const Cheerio = require('cheerio')
 
-export default class ACrawler extends Crawler{
-    async _get_data(url){  
+export default class ACrawler extends Crawler {
+    async _get_data(url) {
         try {
-            let html_content = await Request(url)  
+            let html_content = await Request(url)
             const $ = Cheerio.load(html_content.data)
             let title = $('h1.firstHeading').text()
             console.log(title)
-            this.fs.appendFile(this.config.name + ".txt", title + "\n", () => { }); 
+            this.fs.appendFile(this.config.name + ".txt", title + "\n", () => { });
         } catch (e) {
             this.LOGGER.error("Get Data +" + url)
         }
