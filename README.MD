@@ -6,7 +6,7 @@ Crawler4nodejs is an open source web crawler for Node.js which provides a simple
 
 - [Installation](#installation)
 - [Quickstart](#quickstart)   
-- [More Examples](#more-examples)
+- [Crawl depth](#more-examples)
 - [License](#license)
 
 ## Installation
@@ -60,11 +60,6 @@ let config = {
 };
 let crawler = new ACrawler(config, logger);
 ```
-
-### Resumable Crawling
-
-```
-However, you should note that it might make the crawling slightly slower.
 
 ## License
 
