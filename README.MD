@@ -5,8 +5,8 @@ Crawler4nodejs is an open source web crawler for Node.js which provides a simple
 ## Table of content
 
 - [Installation](#installation)
+- [Run](#run)
 - [Quickstart](#quickstart)   
-- [Crawl depth](#more-examples)
 - [License](#license)
 
 ## Installation
@@ -14,13 +14,13 @@ Crawler4nodejs is an open source web crawler for Node.js which provides a simple
 npm install crawler4nodejs
 ```
 ## RUN
-### Update scripts in package.json
+#### Update scripts in package.json
 ```
   "scripts": {
     "start": "node -r esm index.js"
   }
 ```
-### Run
+#### Run
 ```
 npm install
 ```
@@ -28,18 +28,6 @@ npm install
 You need to create a crawler class that extends Crawler. This class can override the `get_data()` function.  
 
 ### Example
-```
-let config = {
-    name: 'crawl-storage-1',
-    origin_url: 'https://en.wikipedia.org',
-    should_visit_prefix: ['https://en.wikipedia.org/'],
-    page_data_prefix: ['https://en.wikipedia.org/wiki/'],
-    max_depth:3
-};
-
-let crawler = new ACrawler(config, logger);
-crawler.start();
-```
 ```
 import Crawler from "./crawler";
 const Request = require('axios')
@@ -59,6 +47,19 @@ export default class ACrawler extends Crawler{
     }
 }
 ```
+```
+let config = {
+    name: 'crawl-storage-1',
+    origin_url: 'https://en.wikipedia.org',
+    should_visit_prefix: ['https://en.wikipedia.org/'],
+    page_data_prefix: ['https://en.wikipedia.org/wiki/'],
+    max_depth:3
+};
+
+let crawler = new ACrawler(config, logger);
+crawler.start();
+```
+
 
 ### Crawl depth
 By default there is no limit on the depth of crawling. But you can limit the depth of crawling. For example, assume that you have a seed page "A", which links to "B", which links to "C", which links to "D". So, we have the following link structure:
