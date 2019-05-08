@@ -1,6 +1,6 @@
 {
   "name": "crawler4nodejs",
-  "version": "0.0.6",
+  "version": "0.0.8",
   "homepage": "https://github.com/hongluu/crawler4node",
   "dependencies": {
     "await": "^0.2.6",
