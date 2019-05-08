@@ -29,6 +29,7 @@ You need to create a crawler class that extends Crawler. This class can override
 
 ### Example
 ```
+import Crawler from "crawler4nodejs"
 const Cheerio = require('cheerio')
 
 export default class ACrawler extends Crawler{
