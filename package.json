@@ -1,6 +1,6 @@
 {
   "name": "crawler4nodejs",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "homepage": "https://github.com/hongluu/crawler4node",
   "dependencies": {
     "await": "^0.2.6",
@@ -13,5 +13,6 @@
   },
   "scripts": {
     "start": "node -r esm index.js"
-  }
+  },
+  "license": "MIT"
 }
