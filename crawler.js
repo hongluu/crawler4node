@@ -6,20 +6,22 @@
 const { CuckooFilter } = require('bloom-filters')
 const ARequest = require('axios')
 const Cheerio = require('cheerio')
+var NodeCrawler = require("crawler");
+
 const CONFIG_DEFAULT = {
     name: 'crawl-storage-1',
     origin_url: '',
-    time_delay: '',
+    time_delay: 100,
     should_visit_pattern: '',
     is_resuming: true,
-    max_connections: 1,
+    max_connections: 3,
     should_visit_prefix: [this.origin_url],
     page_data_prefix: [this.origin_url],
     ignore_url: [],
     allway_visit: [],
     page_data_pattern: '',
     max_depth: -1,
-    filter_storage: './storage/'
+    filter_storage: './storage/',
 };
 
 export default class Crawler {
@@ -32,6 +34,14 @@ export default class Crawler {
         this.promise_list = []
         this.json_filter_path = this.config.filter_storage + this.config.name + ".json";
         this.url_filter = this._init_filter(this.json_filter_path);
+        this.worker = new NodeCrawler({
+            max_connections: this.config.max_connections,
+            rateLimit: this.config.time_delay,
+            skipEventRequest: true,
+            jQuery: 'cheerio',
+            followAllRedirects: true
+
+        });
 
     }
 
@@ -71,6 +81,7 @@ export default class Crawler {
             this.url_filter.add(url);
             return;
         }
+        await this.wait()
         if (!this._is_existed(url)) {
             this.url_filter.add(url);
             let urls = await this._flip_urls(url);
@@ -80,15 +91,19 @@ export default class Crawler {
                 }
                 if (this._is_should_visit(cur_url)) {
                     if (this._is_page_data(cur_url)) {
-                        this._get_data(cur_url);
+                        this._visit_page_data(cur_url);
                     }
                     return this.visit(cur_url, max_depth - 1);
                 }
             }));
         }
     }
-
+    async wait(){
+        await setTimeout(function () {
+        }, this.config.time_delay);
+    }
     async _flip_urls(url) {
+        await this.wait()
         let html_content = '';
         try {
             html_content = await ARequest(url)
@@ -96,6 +111,7 @@ export default class Crawler {
             this.LOGGER.error(url)
             return [];
         }
+        
         const $ = Cheerio.load(html_content.data)
         let list = [];
         let base_url = this.config.origin_url
@@ -108,7 +124,7 @@ export default class Crawler {
                 }
                 if (url_a.startsWith("/")) {
                     url_a = base_url + url_a;
-                    // console.log(url_a)
+                     //console.log(url_a)
                 }
                 if (this._is_should_visit(url_a)) {
                     list.push(url_a);
@@ -118,8 +134,21 @@ export default class Crawler {
         return list;
     }
 
-    async _get_data(url) {
-        console.log(url)
+    async _visit_page_data(url) {
+        let seft = this;
+        try {
+            this.worker.queue({
+                uri: url,
+                data_selector: seft.config.data_selector,
+                callback: seft._get_data
+            })
+        } catch (e) {
+            console.log(e)
+            this.LOGGER.error("Get Data +" + url)
+        }
+    }
+    async _get_data(){
+
     }
 
     _is_existed(url) {
