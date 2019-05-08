@@ -1,12 +1,14 @@
 {
   "name": "crawler4nodejs",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "homepage": "https://github.com/hongluu/crawler4node",
   "dependencies": {
     "await": "^0.2.6",
     "axios": "^0.18.0",
     "bloom-filters": "^0.5.2",
+    "bull": "^3.9.1",
     "cheerio": "^1.0.0-rc.3",
+    "crawler": "^1.2.1",
     "esm": "^3.2.22",
     "log4js": "^4.1.0",
     "request": "^2.88.0"

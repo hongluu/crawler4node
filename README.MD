@@ -25,38 +25,38 @@ npm install crawler4nodejs
 npm install
 ```
 ## Quickstart
-You need to create a crawler class that extends Crawler. This class can override the `get_data()` function.  
+You need to create a crawler class that extends Crawler. This class can override the `_process_data()` function.  
 
 ### Example
 ```
-import Crawler from "crawler4nodejs"
-const Request = require('axios')
 const Cheerio = require('cheerio')
 
-export default class ACrawler extends Crawler {
-    async _get_data(url) {
-        try {
-            let html_content = await Request(url)
-            const $ = Cheerio.load(html_content.data)
-            let title = $('h1.firstHeading').text()
-            console.log(title)
-            this.fs.appendFile(this.config.name + ".txt", title + "\n", () => { });
-        } catch (e) {
-            this.LOGGER.error("Get Data +" + url)
+export default class ACrawler extends Crawler{
+
+    _process_data(url,html){
+        if (html && url){
+            const $ = Cheerio.load(html)
+            this.fs.appendFileSync("url.txt", url +"\n" , () => { })
+            let title = $(this.config.data_selector.title).text();
+            if (title)
+                this.fs.appendFileSync("test.txt", url + "\n" + title+ "\n",()=>{})
         }
     }
 }
 ```
 ```
-let config = {
+let tuoi_tre_config = {
     name: 'crawl-storage-1',
-    origin_url: 'https://en.wikipedia.org',
-    should_visit_prefix: ['https://en.wikipedia.org/'],
-    page_data_prefix: ['https://en.wikipedia.org/wiki/'],
-    max_depth:3
+    origin_url: 'https://tuoitre.vn',
+    should_visit_prefix: ['https://tuoitre.vn/'],
+    page_data_prefix: ['https://tuoitre.vn/'],
+    max_depth:3,
+    data_selector:{
+        title: "#main-detail > div.w980 > h1"
+    }
 };
 
-let crawler = new ACrawler(config, logger);
+let crawler = new ACrawler(tuoi_tre_config, logger);
 crawler.start();
 ```
 

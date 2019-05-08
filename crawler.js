@@ -84,15 +84,16 @@ export default class Crawler {
         await this.wait()
         if (!this._is_existed(url)) {
             this.url_filter.add(url);
-            let urls = await this._flip_urls(url);
+            let page = await this._flip_urls(url);
+            if (this._is_page_data(url)) {
+                this._process_data(url, page.html);
+            }
+            let urls = page.urls;
             await Promise.all(urls.map(cur_url => {
                 if (this._is_existed(cur_url)) {
                     return
                 }
                 if (this._is_should_visit(cur_url)) {
-                    if (this._is_page_data(cur_url)) {
-                        this._visit_page_data(cur_url);
-                    }
                     return this.visit(cur_url, max_depth - 1);
                 }
             }));
@@ -131,12 +132,13 @@ export default class Crawler {
                 }
             }
         }
-        return list;
+        return { urls: list, html: html_content.data};
     }
 
     async _visit_page_data(url) {
         let seft = this;
         try {
+            seft.fs.appendFile("crawl-storage-1.txt",url +"\n",() => { })
             this.worker.queue({
                 uri: url,
                 data_selector: seft.config.data_selector,
