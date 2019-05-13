@@ -7,11 +7,13 @@ const { CuckooFilter } = require('bloom-filters')
 const ARequest = require('axios')
 const Cheerio = require('cheerio')
 var NodeCrawler = require("crawler");
+import Bottleneck from "bottleneck";
+
 
 const CONFIG_DEFAULT = {
     name: 'crawl-storage-1',
     origin_url: '',
-    time_delay: 100,
+    time_delay: 0,
     should_visit_pattern: '',
     is_resuming: true,
     max_connections: 3,
@@ -34,18 +36,12 @@ export default class Crawler {
         this.promise_list = []
         this.json_filter_path = this.config.filter_storage + this.config.name + ".json";
         this.url_filter = this._init_filter(this.json_filter_path);
-        this.worker = new NodeCrawler({
-            max_connections: this.config.max_connections,
-            rateLimit: this.config.time_delay,
-            skipEventRequest: true,
-            jQuery: 'cheerio',
-            followAllRedirects: true
-
+        this.limiter = new Bottleneck({
+            minTime: this.config.time_delay
         });
-
     }
 
-    _init_filter(json_filter_path){
+    _init_filter(json_filter_path) {
         try {
             this.LOGGER.debug("UPDATE " + this.config.name + "...")
             let boomfile = this.fs.readFileSync(json_filter_path)
@@ -53,7 +49,7 @@ export default class Crawler {
             return CuckooFilter.fromJSON(exported);
         } catch (e) {
             this.LOGGER.debug("FIRST " + this.config.name + "...")
-            return  new CuckooFilter(30000, 400, 8);
+            return new CuckooFilter(30000, 400, 8);
         }
     }
 
@@ -77,11 +73,11 @@ export default class Crawler {
     }
 
     async visit(url, max_depth) {
+        console.log(url)
         if (max_depth == 1) {
             this.url_filter.add(url);
             return;
         }
-        await this.wait()
         if (!this._is_existed(url)) {
             this.url_filter.add(url);
             let page = await this._flip_urls(url);
@@ -89,30 +85,29 @@ export default class Crawler {
                 this._process_data(url, page.html);
             }
             let urls = page.urls;
-            await Promise.all(urls.map(cur_url => {
-                if (this._is_existed(cur_url)) {
-                    return
-                }
-                if (this._is_should_visit(cur_url)) {
-                    return this.visit(cur_url, max_depth - 1);
-                }
-            }));
+            if (urls) {
+                await Promise.all(urls.map(cur_url => {
+                    if (this._is_existed(cur_url)) {
+                        return
+                    }
+                    if (this._is_should_visit(cur_url)) {
+                        return this.limiter.schedule(()=> this.visit(cur_url, max_depth - 1));
+                    }
+                })).catch(e => { this.LOGGER.error(e) });
+            }
         }
     }
-    async wait(){
-        await setTimeout(function () {
-        }, this.config.time_delay);
-    }
+
     async _flip_urls(url) {
-        await this.wait()
         let html_content = '';
         try {
-            html_content = await ARequest(url)
+            html_content = await ARequest({ url, timeout: 10000 })
         } catch (e) {
-            this.LOGGER.error(url)
+            console.log(e)
+            this._store_err_url(url);
             return [];
         }
-        
+
         const $ = Cheerio.load(html_content.data)
         let list = [];
         let base_url = this.config.origin_url
@@ -125,20 +120,20 @@ export default class Crawler {
                 }
                 if (url_a.startsWith("/")) {
                     url_a = base_url + url_a;
-                     //console.log(url_a)
+                    //console.log(url_a)
                 }
                 if (this._is_should_visit(url_a)) {
                     list.push(url_a);
                 }
             }
         }
-        return { urls: list, html: html_content.data};
+        return { urls: list, html: html_content.data };
     }
 
     async _visit_page_data(url) {
         let seft = this;
         try {
-            seft.fs.appendFile("crawl-storage-1.txt",url +"\n",() => { })
+            seft.fs.appendFile("crawl-storage-1.txt", url + "\n", () => { })
             this.worker.queue({
                 uri: url,
                 data_selector: seft.config.data_selector,
@@ -149,7 +144,10 @@ export default class Crawler {
             this.LOGGER.error("Get Data +" + url)
         }
     }
-    async _get_data(){
+    async _get_data() {
+
+    }
+    _store_err_url() {
 
     }
 

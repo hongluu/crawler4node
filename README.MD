@@ -28,7 +28,7 @@ npm install
 You need to create a crawler class that extends Crawler. This class can override the `_process_data()` function.  
 
 ### Example
-```
+```js
 import Crawler from "crawler4nodejs"
 const Cheerio = require('cheerio')
 
@@ -43,15 +43,21 @@ export default class ACrawler extends Crawler{
                 this.fs.appendFileSync("test.txt", url + "\n" + title+ "\n",()=>{})
         }
     }
+    // process error url
+    _store_err_url(url){
+        this.fs.appendFileSync("error.txt", url + "\n", () => { })
+    }
+
 }
 ```
-```
+```js
 let tuoi_tre_config = {
     name: 'crawl-storage-1',
     origin_url: 'https://tuoitre.vn',
     should_visit_prefix: ['https://tuoitre.vn/'],
     page_data_prefix: ['https://tuoitre.vn/'],
     max_depth:3,
+    time_delay: 300  //3 request per seconds
     data_selector:{
         title: "#main-detail > div.w980 > h1"
     }

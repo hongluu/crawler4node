@@ -1,7 +1,7 @@
 const Cheerio = require('cheerio')
+import Crawler from "./crawler"
 
 export default class ACrawler extends Crawler{
-
     _process_data(url,html){
         if (html && url){
             const $ = Cheerio.load(html)
@@ -10,5 +10,8 @@ export default class ACrawler extends Crawler{
             if (title)
                 this.fs.appendFileSync("test.txt", url + "\n" + title+ "\n",()=>{})
         }
+    }
+    _store_err_url(url){
+        this.fs.appendFileSync("error.txt", url + "\n", () => { })
     }
 }

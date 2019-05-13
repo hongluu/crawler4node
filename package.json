@@ -3,18 +3,22 @@
   "version": "0.0.8",
   "homepage": "https://github.com/hongluu/crawler4node",
   "dependencies": {
+    "add": "^2.0.6",
     "await": "^0.2.6",
     "axios": "^0.18.0",
     "bloom-filters": "^0.5.2",
+    "bottleneck": "^2.18.1",
     "bull": "^3.9.1",
     "cheerio": "^1.0.0-rc.3",
     "crawler": "^1.2.1",
     "esm": "^3.2.22",
     "log4js": "^4.1.0",
-    "request": "^2.88.0"
+    "queue": "^6.0.1",
+    "request": "^2.88.0",
+    "yarn": "^1.15.2"
   },
   "scripts": {
-    "start": "node -r esm index.js"
+    "start": "node -r esm run.js"
   },
   "license": "MIT"
 }
