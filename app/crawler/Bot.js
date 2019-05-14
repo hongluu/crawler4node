@@ -147,7 +147,7 @@ export default class Bot {
         let html_content = null;
         try {
             html_content = await this.request.get(url)
-            if (html_content.statusText == 'OK') {
+            if (html_content.statusText !== 'OK') {
                 this._store_err_url(url);
                 return null;
             }

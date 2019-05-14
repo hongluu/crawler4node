@@ -22,7 +22,7 @@ let tuoi_tre_config = {
     should_visit_prefix: ['https://tuoitre.vn/'],
     page_data_prefix: ['https://tuoitre.vn/'],
     max_depth: 2,
-    time_delay: 300,
+    time_delay: 10,
     data_selector: {
         title: "#main-detail > div.w980 > h1"
     }
