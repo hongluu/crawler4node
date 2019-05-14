@@ -74,7 +74,7 @@ By default there is no limit on the depth of crawling. But you can limit the dep
 A -> B -> C -> D
 
 Since, "A" is a seed page, it will have a depth of 0. "B" will have depth of 1 and so on. You can set a limit on the depth of pages that crawler4j crawls. For example, if you set this limit to 2, it won't crawl page "D". To set the maximum depth you can use:
-```
+```js
 let config = {
     ...
     max_depth:3
