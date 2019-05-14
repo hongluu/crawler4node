@@ -28,7 +28,7 @@ const CONFIG_DEFAULT = {
 
 export default class Crawler {
     constructor(config, logger) {
-        this.config = Object.assign(CONFIG_DEFAULT, config);
+        this.config = _init_config(config) 
         this.data = {};
         this.vm = this;
         this.fs = require("fs");
@@ -39,6 +39,13 @@ export default class Crawler {
         this.limiter = new Bottleneck({
             minTime: this.config.time_delay
         });
+    }
+
+    _init_config(config) {
+        let _config = Object.assign(CONFIG_DEFAULT, config);
+        if (!_config.should_visit_prefix) _config.should_visit_prefix = config.origin_url;
+        if (!_config.page_data_prefix) _config.page_data_prefix = config.origin_url;
+        if (!_config.allway_visit) _config.allway_visit = config.origin_url;
     }
 
     _init_filter(json_filter_path) {
