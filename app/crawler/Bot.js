@@ -3,7 +3,7 @@
  * @author HongLM
  * @copyright kiwiluvtea
  */
-const { CuckooFilter } = require('bloom-filters')
+import Filter from "./Filter"
 const axios = require('axios')
 const Cheerio = require('cheerio')
 import Bottleneck from "bottleneck";
@@ -16,8 +16,8 @@ const CONFIG_DEFAULT = {
     should_visit_pattern: '',
     is_resuming: true,
     max_connections: 3,
-    should_visit_prefix: [this.origin_url],
-    page_data_prefix: [this.origin_url],
+    should_visit_prefix: [],
+    page_data_prefix: [],
     ignore_url: [],
     allway_visit: [],
     page_data_pattern: '',
@@ -34,7 +34,10 @@ export default class Bot {
         this.LOGGER = logger;
         this.promise_list = []
         this.json_filter_path = this.config.filter_storage + this.config.name + ".json";
-        this.url_filter = this._init_filter(this.json_filter_path);
+        this.url_filter = new Filter({
+            storage_path: this.config.json_filter_path,
+            isUpdate: false
+        });
         this.limiter = new Bottleneck({
             minTime: this.config.time_delay
         });
@@ -49,18 +52,8 @@ export default class Bot {
             _config.page_data_prefix[0] = config.origin_url + "/";
         if (_config.allway_visit.length == 0)
             _config.allway_visit[0] = config.origin_url;
-        
-        return _config;
-    }
 
-    _init_filter(json_filter_path) {
-        try {
-            let boomfile = this.fs.readFileSync(json_filter_path)
-            let exported = JSON.parse(boomfile);
-            return CuckooFilter.fromJSON(exported);
-        } catch (e) {
-            return new CuckooFilter(30000, 400, 8);
-        }
+        return _config;
     }
 
     async restart() {
@@ -81,6 +74,49 @@ export default class Bot {
         this.fs.writeFile(this.json_filter_path, JSON.stringify(exported), () => { });
         this.LOGGER.debug("FINISH " + this.config.name)
     }
+    async visit_update(update_filter,url, max_depth) {
+        if (this._is_existed(url)) {
+            return
+        }
+        if (max_depth == 1) {
+            update_filter.add(url);
+            this.url_filter.add(url);
+            try {
+                let html_content = await this._get_html_by(url)
+                this.LOGGER.error(html_content)
+                if (html_content)
+                    if (this._is_page_data(url)) {
+                        if(this._is_existed(url)){
+                            this._process_data(url, html_content);
+                        }
+                    }
+            } catch (e) {
+                // console.log(e)
+                this._store_err_url(url);
+            }
+
+            return;
+        }
+        update_filter.add(url);
+        this.url_filter.add(url);
+        let page = await this._flip_urls(url);
+        if (this._is_page_data(url)) {
+            if(this._is_existed(url)){
+                this._process_data(url, page.html);
+            }              
+        }
+        let urls = page.urls;
+        if (urls) {
+            await Promise.all(urls.map(cur_url => {
+                if (update_filter.has(cur_url)) {
+                    return
+                }
+                if (this._is_should_visit(cur_url)) {
+                    return this.limiter.schedule(() => this.visit_update(update_filter,cur_url, max_depth - 1));
+                }
+            })).catch(e => { this.LOGGER.error(e) });
+        }
+    }
 
     async visit(url, max_depth) {
         if (this._is_existed(url)){
@@ -96,7 +132,7 @@ export default class Bot {
                     this._process_data(url, html_content);
                 }
             } catch (e) {
-                console.log(e)
+                // console.log(e)
                 this._store_err_url(url);
             }
             
@@ -128,13 +164,12 @@ export default class Bot {
         }
         const $ = Cheerio.load(html_content)
         let list = [];
-        let base_url = this.config.origin_url
         let url_els = $('a');
         for (let i = 0; i < url_els.length; i++) {
             let url_a = $(url_els[i]).prop('href');
             if (url_a) {
                 if (url_a.startsWith("/")) {
-                    url_a = base_url + url_a;
+                    url_a = this._get_full_url(url_a);
                 }
                 if (this._is_should_visit(url_a)) {
                     list.push(url_a);
@@ -142,6 +177,9 @@ export default class Bot {
             }
         }
         return { urls: list, html: html_content };
+    }
+    _get_full_url(url) {
+        return base_url + url;    
     }
     async _get_html_by(url){
         let html_content = null;
@@ -152,13 +190,11 @@ export default class Bot {
                 return null;
             }
         } catch (e) {
-            console.log(e)
+            // console.log(e)
             this._store_err_url(url);
             return null;
-        }finally{   
-            return html_content.data;
         }
-        
+        return html_content.data;    
     }
     async _get_data() {
 

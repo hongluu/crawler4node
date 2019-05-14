@@ -1,4 +1,8 @@
 const axios = require('axios')
-class Request extends axios{
+class Request{
+    constructor(){
+        this.request = axios.create();
+    }
     
+
 }
