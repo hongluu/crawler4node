@@ -4,9 +4,8 @@
  * @copyright kiwiluvtea
  */
 const { CuckooFilter } = require('bloom-filters')
-const ARequest = require('axios')
+const axios = require('axios')
 const Cheerio = require('cheerio')
-var NodeCrawler = require("crawler");
 import Bottleneck from "bottleneck";
 
 
@@ -26,9 +25,9 @@ const CONFIG_DEFAULT = {
     filter_storage: './storage/',
 };
 
-export default class Crawler {
+export default class Bot {
     constructor(config, logger) {
-        this.config = _init_config(config) 
+        this.config = this._init_config(config) 
         this.data = {};
         this.vm = this;
         this.fs = require("fs");
@@ -39,23 +38,27 @@ export default class Crawler {
         this.limiter = new Bottleneck({
             minTime: this.config.time_delay
         });
+        this.request = axios.create();
     }
 
     _init_config(config) {
         let _config = Object.assign(CONFIG_DEFAULT, config);
-        if (!_config.should_visit_prefix) _config.should_visit_prefix = config.origin_url;
-        if (!_config.page_data_prefix) _config.page_data_prefix = config.origin_url;
-        if (!_config.allway_visit) _config.allway_visit = config.origin_url;
+        if (_config.should_visit_prefix.length == 0) 
+            _config.should_visit_prefix[0] = config.origin_url+"/";
+        if (_config.page_data_prefix.length == 0) 
+            _config.page_data_prefix[0] = config.origin_url + "/";
+        if (_config.allway_visit.length == 0)
+            _config.allway_visit[0] = config.origin_url;
+        
+        return _config;
     }
 
     _init_filter(json_filter_path) {
         try {
-            this.LOGGER.debug("UPDATE " + this.config.name + "...")
             let boomfile = this.fs.readFileSync(json_filter_path)
             let exported = JSON.parse(boomfile);
             return CuckooFilter.fromJSON(exported);
         } catch (e) {
-            this.LOGGER.debug("FIRST " + this.config.name + "...")
             return new CuckooFilter(30000, 400, 8);
         }
     }
@@ -80,76 +83,82 @@ export default class Crawler {
     }
 
     async visit(url, max_depth) {
-        console.log(url)
+        if (this._is_existed(url)){
+            return
+        }
         if (max_depth == 1) {
             this.url_filter.add(url);
+            try {
+                let html_content = await this._get_html_by( url)
+                this.LOGGER.error(html_content)
+                if (html_content)
+                if (this._is_page_data(url)) {
+                    this._process_data(url, html_content);
+                }
+            } catch (e) {
+                console.log(e)
+                this._store_err_url(url);
+            }
+            
             return;
         }
-        if (!this._is_existed(url)) {
-            this.url_filter.add(url);
-            let page = await this._flip_urls(url);
-            if (this._is_page_data(url)) {
-                this._process_data(url, page.html);
-            }
-            let urls = page.urls;
-            if (urls) {
-                await Promise.all(urls.map(cur_url => {
-                    if (this._is_existed(cur_url)) {
-                        return
-                    }
-                    if (this._is_should_visit(cur_url)) {
-                        return this.limiter.schedule(()=> this.visit(cur_url, max_depth - 1));
-                    }
-                })).catch(e => { this.LOGGER.error(e) });
-            }
+        
+        this.url_filter.add(url);
+        let page = await this._flip_urls(url);
+        if (this._is_page_data(url)) {
+            this._process_data(url, page.html);
         }
+        let urls = page.urls;
+        if (urls) {
+            await Promise.all(urls.map(cur_url => {
+                if (this._is_existed(cur_url)) {
+                    return
+                }
+                if (this._is_should_visit(cur_url)) {
+                    return this.limiter.schedule(()=> this.visit(cur_url, max_depth - 1));
+                }
+            })).catch(e => { this.LOGGER.error(e) });
+        }     
     }
 
     async _flip_urls(url) {
-        let html_content = '';
-        try {
-            html_content = await ARequest({ url, timeout: 10000 })
-        } catch (e) {
-            console.log(e)
-            this._store_err_url(url);
+        let html_content = await this._get_html_by(url);
+        if(!html_content){
             return [];
         }
-
-        const $ = Cheerio.load(html_content.data)
+        const $ = Cheerio.load(html_content)
         let list = [];
         let base_url = this.config.origin_url
         let url_els = $('a');
         for (let i = 0; i < url_els.length; i++) {
             let url_a = $(url_els[i]).prop('href');
             if (url_a) {
-                if (this._is_existed(url_a)) {
-                    continue
-                }
                 if (url_a.startsWith("/")) {
                     url_a = base_url + url_a;
-                    //console.log(url_a)
                 }
                 if (this._is_should_visit(url_a)) {
                     list.push(url_a);
                 }
             }
         }
-        return { urls: list, html: html_content.data };
+        return { urls: list, html: html_content };
     }
-
-    async _visit_page_data(url) {
-        let seft = this;
+    async _get_html_by(url){
+        let html_content = null;
         try {
-            seft.fs.appendFile("crawl-storage-1.txt", url + "\n", () => { })
-            this.worker.queue({
-                uri: url,
-                data_selector: seft.config.data_selector,
-                callback: seft._get_data
-            })
+            html_content = await this.request.get(url)
+            if (html_content.statusText == 'OK') {
+                this._store_err_url(url);
+                return null;
+            }
         } catch (e) {
             console.log(e)
-            this.LOGGER.error("Get Data +" + url)
+            this._store_err_url(url);
+            return null;
+        }finally{   
+            return html_content.data;
         }
+        
     }
     async _get_data() {
 

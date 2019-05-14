@@ -1,2 +1,2 @@
-import Crawler from "./crawler"
-export default Crawler
+import Bot from "./app/crawler/Bot"
+export default Bot
