@@ -103,7 +103,6 @@ export default class Bot {
         if (max_depth == 1) {
             filter.add(url);
             let html_content = await this._get_html_by(url)
-            // this.LOGGER.error(html_content)
             if (html_content){
                 let responseUrl = html_content.responseUrl;
                 if (responseUrl && responseUrl!== url){
@@ -133,50 +132,6 @@ export default class Bot {
             })).catch(e => { this.LOGGER.error(e) });
         }
     }
-
-    // async visit(url, max_depth) {
-    //     if (this._is_existed(url)){
-    //         return
-    //     }
-    //     if (max_depth == 1) {
-    //         this.url_filter.add(url);
-    //         try {
-    //             let html_content = await this._get_html_by( url)
-            
-    //             if (html_content){
-    //                 let responseUrl = html_content.responseUrl;
-    //                 if (responseUrl && responseUrl!= url){
-    //                     this.url_filter.add(responseUrl);
-    //                 }
-    //                 if (this._is_page_data(responseUrl)) {
-    //                     this._process_data(responseUrl, html_content.html);
-    //                 }
-    //             }
-    //         } catch (e) {
-    //             console.log(e)
-    //             this._store_err_url(url);
-    //         }
-            
-    //         return;
-    //     }
-        
-    //     this.url_filter.add(url);
-    //     let page = await this._flip_urls(url);
-    //     if (this._is_page_data(url)) {
-    //         this._process_data(url, page.html);
-    //     }
-    //     let urls = page.urls;
-    //     if (urls) {
-    //         await Promise.all(urls.map(cur_url => {
-    //             if (this._is_existed(cur_url)) {
-    //                 return
-    //             }
-    //             if (this._is_should_visit(cur_url)) {
-    //                 return this.limiter.schedule(()=> this.visit(cur_url, max_depth - 1));
-    //             }
-    //         })).catch(e => { this.LOGGER.error(e) });
-    //     }     
-    // }
 
     async _flip_urls(url) {
         let html_content = await this._get_html_by(url);
