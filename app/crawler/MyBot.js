@@ -5,9 +5,6 @@ export default class MyBot extends Bot{
     _process_data(url,html){
         if (html && url){
             const $ = Cheerio.load(html)
-            // this.LOGGER.debug('')
-            // this.LOGGER.debug(url)
-            // this.LOGGER.debug(html)
             this.fs.appendFileSync("01_url.txt", url +"\n" , () => { })
             let title = $(this.config.data_selector.title).text()
             if (title)

@@ -29,10 +29,10 @@ You need to create a crawler class that extends Crawler. This class can override
 
 ### Example
 ```js
-import Crawler from "crawler4nodejs"
+import Bot from "crawler4nodejs"
 const Cheerio = require('cheerio')
 
-export default class ACrawler extends Crawler{
+export default class MyBot extends Bot{
 
     _process_data(url,html){
         if (html && url){
@@ -63,7 +63,7 @@ let tuoi_tre_config = {
     }
 };
 
-let crawler = new ACrawler(tuoi_tre_config, logger);
+let crawler = new MyBot(tuoi_tre_config, logger);
 crawler.start();
 ```
 
