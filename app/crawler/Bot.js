@@ -35,13 +35,13 @@ export default class Bot {
         this.promise_list = []
         this.json_filter_path = this.config.filter_storage + this.config.name + ".json";
         this.url_filter = new Filter({
-            storage_path: this.config.json_filter_path,
+            storage_path: this.json_filter_path,
             isUpdate: false
         });
         this.limiter = new Bottleneck({
             minTime: this.config.time_delay
         });
-        this.request = axios.create();
+        this.request = axios.create({ timeout: 30000});
     }
 
     _init_config(config) {
@@ -65,7 +65,7 @@ export default class Bot {
         this.LOGGER.debug("START " + this.config.name)
         let max_depth = this.config.max_depth;
         this.config.allway_visit.forEach(url => this.url_filter.remove(url));
-        if (max_depth > 1) {
+        if (max_depth > 0) {
             await this.visit(this.config.origin_url, max_depth);
         } else {
             await this.visit(this.config.origin_url);
@@ -83,7 +83,7 @@ export default class Bot {
             this.url_filter.add(url);
             try {
                 let html_content = await this._get_html_by(url)
-                this.LOGGER.error(html_content)
+                // this.LOGGER.error(html_content)
                 if (html_content)
                     if (this._is_page_data(url)) {
                         if(this._is_existed(url)){
@@ -112,7 +112,7 @@ export default class Bot {
                     return
                 }
                 if (this._is_should_visit(cur_url)) {
-                    return this.limiter.schedule(() => this.visit_update(update_filter,cur_url, max_depth - 1));
+                    return  this.visit_update(update_filter,cur_url, max_depth - 1);
                 }
             })).catch(e => { this.LOGGER.error(e) });
         }
@@ -126,13 +126,11 @@ export default class Bot {
             this.url_filter.add(url);
             try {
                 let html_content = await this._get_html_by( url)
-                this.LOGGER.error(html_content)
                 if (html_content)
                 if (this._is_page_data(url)) {
                     this._process_data(url, html_content);
                 }
             } catch (e) {
-                // console.log(e)
                 this._store_err_url(url);
             }
             
@@ -179,7 +177,7 @@ export default class Bot {
         return { urls: list, html: html_content };
     }
     _get_full_url(url) {
-        return base_url + url;    
+        return this.config.origin_url + url;    
     }
     async _get_html_by(url){
         let html_content = null;
