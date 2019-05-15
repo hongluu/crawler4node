@@ -41,7 +41,7 @@ export default class Bot {
         this.limiter = new Bottleneck({
             minTime: this.config.time_delay
         });
-        this.request = axios.create({ timeout: 30000});
+        this.request = axios.create({ timeout: 5000});
     }
 
     _init_config(config) {
@@ -61,6 +61,21 @@ export default class Bot {
         this.start()
     }
 
+    async update() {
+        this.LOGGER.debug("UPDATE " + this.config.name)
+        let max_depth = this.config.max_depth;
+        this.config.allway_visit.forEach(url => this.url_filter.remove(url));
+        let update_filter = new Filter({isUpdate: true});
+        if (max_depth > 0) {
+            await this.visit_update(update_filter,this.config.origin_url, max_depth);
+        } else {
+            await this.visit_update(update_filter.config.origin_url);
+        }
+        let exported = this.url_filter.saveAsJSON()
+        this.fs.writeFile(this.json_filter_path, JSON.stringify(exported), () => { });
+        this.LOGGER.debug("FINISH " + this.config.name)
+    }
+
     async start() {
         this.LOGGER.debug("START " + this.config.name)
         let max_depth = this.config.max_depth;
@@ -75,18 +90,19 @@ export default class Bot {
         this.LOGGER.debug("FINISH " + this.config.name)
     }
     async visit_update(update_filter,url, max_depth) {
-        if (this._is_existed(url)) {
+        if (update_filter.has(url)) {
             return
         }
         if (max_depth == 1) {
             update_filter.add(url);
-            this.url_filter.add(url);
             try {
                 let html_content = await this._get_html_by(url)
                 // this.LOGGER.error(html_content)
                 if (html_content)
                     if (this._is_page_data(url)) {
-                        if(this._is_existed(url)){
+                        if(!this._is_existed(url)){
+                            console.log(url)
+                            this.url_filter.add(url);
                             this._process_data(url, html_content);
                         }
                     }
@@ -98,10 +114,10 @@ export default class Bot {
             return;
         }
         update_filter.add(url);
-        this.url_filter.add(url);
         let page = await this._flip_urls(url);
         if (this._is_page_data(url)) {
-            if(this._is_existed(url)){
+            if(!this._is_existed(url)){
+                this.url_filter.add(url);
                 this._process_data(url, page.html);
             }              
         }

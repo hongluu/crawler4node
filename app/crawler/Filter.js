@@ -34,8 +34,8 @@ const { CuckooFilter } = require('bloom-filters')
 export default class Filter {
 
     constructor(option, ) {
-        this.MAX_ENTRIES_PER_BUCKET = 8;
-        this.MIN_ENTRIES_PER_BUCKET = 2;
+        this.MAX_ENTRIES_PER_BUCKET = 32;
+        this.MIN_ENTRIES_PER_BUCKET = 8;
         if (option) {
             if (option.isUpdate) {
                 this.filter = this._init_update_filter(option.storage_path)
@@ -51,11 +51,11 @@ export default class Filter {
     _init_first_filter(json_filter_path) {
         try {
             // console.log(json_filter_path)
-            let boomfile = this.fs.readFileSync(json_filter_path)
+            let boomfile = require('fs').readFileSync(json_filter_path)
             let exported = JSON.parse(boomfile);
             return CuckooFilter.fromJSON(exported);
         } catch (e) {
-            return this.create(20000000, 0.000001);
+            return this.create(30000000, 0.000001);
         }
     }
 

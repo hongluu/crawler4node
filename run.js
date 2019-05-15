@@ -29,4 +29,10 @@ let tuoi_tre_config = {
 };
 
 let bot = new ABot(tuoi_tre_config, logger);
-bot.start();
+bot.update()
+bot= null;
+// setInterval(()=> { 
+//     console.log("start");
+//     let bot = new ABot(tuoi_tre_config, logger);
+//     bot.update()
+// },2*60*1000);
