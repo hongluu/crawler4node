@@ -55,7 +55,7 @@ export default class Filter {
             let exported = JSON.parse(boomfile);
             return CuckooFilter.fromJSON(exported);
         } catch (e) {
-            return this.create(30000000, 0.000001);
+            return this.create(3000000, 0.000001);
         }
     }
 

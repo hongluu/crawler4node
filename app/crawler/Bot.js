@@ -7,7 +7,7 @@ import Filter from "./Filter"
 const axios = require('axios')
 const Cheerio = require('cheerio')
 import Bottleneck from "bottleneck";
-
+const url_resolver = require('url');
 
 const CONFIG_DEFAULT = {
     name: 'crawl-storage-1',
@@ -41,15 +41,15 @@ export default class Bot {
         this.limiter = new Bottleneck({
             minTime: this.config.time_delay
         });
-        this.request = axios.create({ timeout: 5000});
+        this.request = axios.create({ timeout: 30000});
     }
 
     _init_config(config) {
         let _config = Object.assign(CONFIG_DEFAULT, config);
         if (_config.should_visit_prefix.length == 0) 
-            _config.should_visit_prefix[0] = config.origin_url+"/";
+            _config.should_visit_prefix[0] = config.origin_url;
         if (_config.page_data_prefix.length == 0) 
-            _config.page_data_prefix[0] = config.origin_url + "/";
+            _config.page_data_prefix[0] = config.origin_url;
         if (_config.allway_visit.length == 0)
             _config.allway_visit[0] = config.origin_url;
 
@@ -57,103 +57,66 @@ export default class Bot {
     }
 
     async restart() {
-        this.fs.writeFile(this.config.name + ".txt", "", () => { });
+        try{
+            this.fs.unlinkSync(this.json_filter_path, () => { })
+        }catch(e){
+        }
+        
+        this.url_filter = new Filter({
+            storage_path: this.json_filter_path,
+            isUpdate: false
+        });
         this.start()
     }
 
     async update() {
         this.LOGGER.debug("UPDATE " + this.config.name)
-        let max_depth = this.config.max_depth;
-        this.config.allway_visit.forEach(url => this.url_filter.remove(url));
-        let update_filter = new Filter({isUpdate: true});
-        if (max_depth > 0) {
-            await this.visit_update(update_filter,this.config.origin_url, max_depth);
-        } else {
-            await this.visit_update(update_filter.config.origin_url);
-        }
-        let exported = this.url_filter.saveAsJSON()
-        this.fs.writeFile(this.json_filter_path, JSON.stringify(exported), () => { });
+        let update_filter = new Filter({ isUpdate: true });
+        await this.crawl(update_filter);
         this.LOGGER.debug("FINISH " + this.config.name)
     }
 
     async start() {
         this.LOGGER.debug("START " + this.config.name)
+        await this.crawl(this.url_filter);
+        this.LOGGER.debug("FINISH " + this.config.name)
+        
+    }
+    async crawl(url_filter) {
+        
         let max_depth = this.config.max_depth;
-        this.config.allway_visit.forEach(url => this.url_filter.remove(url));
+        this.config.allway_visit.forEach(url => url_filter.remove(url));
         if (max_depth > 0) {
-            await this.visit(this.config.origin_url, max_depth);
-        } else {
-            await this.visit(this.config.origin_url);
+            await this.visit(url_filter, this.config.origin_url, max_depth);
+        }
+        else {
+            await this.visit(url_filter, this.config.origin_url);
         }
         let exported = this.url_filter.saveAsJSON()
         this.fs.writeFile(this.json_filter_path, JSON.stringify(exported), () => { });
-        this.LOGGER.debug("FINISH " + this.config.name)
     }
-    async visit_update(update_filter,url, max_depth) {
-        if (update_filter.has(url)) {
+
+    async visit(filter,url, max_depth) {
+        if (filter.has(url)) {
             return
         }
         if (max_depth == 1) {
-            update_filter.add(url);
-            try {
-                let html_content = await this._get_html_by(url)
-                // this.LOGGER.error(html_content)
-                if (html_content)
-                    if (this._is_page_data(url)) {
-                        if(!this._is_existed(url)){
-                            console.log(url)
-                            this.url_filter.add(url);
-                            this._process_data(url, html_content);
-                        }
-                    }
-            } catch (e) {
-                // console.log(e)
-                this._store_err_url(url);
+            filter.add(url);
+            let html_content = await this._get_html_by(url)
+            // this.LOGGER.error(html_content)
+            if (html_content){
+                let responseUrl = html_content.responseUrl;
+                if (responseUrl && responseUrl!== url){
+                    filter.add(url);
+                }
+                if (this._is_page_data(responseUrl)) {
+                    this._process_data(url, html_content.html);
+                }
             }
-
+                
             return;
         }
-        update_filter.add(url);
-        let page = await this._flip_urls(url);
-        if (this._is_page_data(url)) {
-            if(!this._is_existed(url)){
-                this.url_filter.add(url);
-                this._process_data(url, page.html);
-            }              
-        }
-        let urls = page.urls;
-        if (urls) {
-            await Promise.all(urls.map(cur_url => {
-                if (update_filter.has(cur_url)) {
-                    return
-                }
-                if (this._is_should_visit(cur_url)) {
-                    return  this.visit_update(update_filter,cur_url, max_depth - 1);
-                }
-            })).catch(e => { this.LOGGER.error(e) });
-        }
-    }
-
-    async visit(url, max_depth) {
-        if (this._is_existed(url)){
-            return
-        }
-        if (max_depth == 1) {
-            this.url_filter.add(url);
-            try {
-                let html_content = await this._get_html_by( url)
-                if (html_content)
-                if (this._is_page_data(url)) {
-                    this._process_data(url, html_content);
-                }
-            } catch (e) {
-                this._store_err_url(url);
-            }
-            
-            return;
-        }
-        
-        this.url_filter.add(url);
+        filter.add(url);
         let page = await this._flip_urls(url);
         if (this._is_page_data(url)) {
             this._process_data(url, page.html);
@@ -161,54 +124,106 @@ export default class Bot {
         let urls = page.urls;
         if (urls) {
             await Promise.all(urls.map(cur_url => {
-                if (this._is_existed(cur_url)) {
+                if (filter.has(cur_url)) {
                     return
                 }
                 if (this._is_should_visit(cur_url)) {
-                    return this.limiter.schedule(()=> this.visit(cur_url, max_depth - 1));
+                    return this.visit(filter,cur_url, max_depth - 1);
                 }
             })).catch(e => { this.LOGGER.error(e) });
-        }     
+        }
     }
+
+    // async visit(url, max_depth) {
+    //     if (this._is_existed(url)){
+    //         return
+    //     }
+    //     if (max_depth == 1) {
+    //         this.url_filter.add(url);
+    //         try {
+    //             let html_content = await this._get_html_by( url)
+            
+    //             if (html_content){
+    //                 let responseUrl = html_content.responseUrl;
+    //                 if (responseUrl && responseUrl!= url){
+    //                     this.url_filter.add(responseUrl);
+    //                 }
+    //                 if (this._is_page_data(responseUrl)) {
+    //                     this._process_data(responseUrl, html_content.html);
+    //                 }
+    //             }
+    //         } catch (e) {
+    //             console.log(e)
+    //             this._store_err_url(url);
+    //         }
+            
+    //         return;
+    //     }
+        
+    //     this.url_filter.add(url);
+    //     let page = await this._flip_urls(url);
+    //     if (this._is_page_data(url)) {
+    //         this._process_data(url, page.html);
+    //     }
+    //     let urls = page.urls;
+    //     if (urls) {
+    //         await Promise.all(urls.map(cur_url => {
+    //             if (this._is_existed(cur_url)) {
+    //                 return
+    //             }
+    //             if (this._is_should_visit(cur_url)) {
+    //                 return this.limiter.schedule(()=> this.visit(cur_url, max_depth - 1));
+    //             }
+    //         })).catch(e => { this.LOGGER.error(e) });
+    //     }     
+    // }
 
     async _flip_urls(url) {
         let html_content = await this._get_html_by(url);
         if(!html_content){
             return [];
         }
-        const $ = Cheerio.load(html_content)
+        const $ = Cheerio.load(html_content.html)
         let list = [];
         let url_els = $('a');
         for (let i = 0; i < url_els.length; i++) {
             let url_a = $(url_els[i]).prop('href');
             if (url_a) {
-                if (url_a.startsWith("/")) {
-                    url_a = this._get_full_url(url_a);
-                }
+                url_a = this._get_full_url(url_a);
                 if (this._is_should_visit(url_a)) {
                     list.push(url_a);
                 }
             }
         }
-        return { urls: list, html: html_content };
+        return { urls: list, html: html_content.html };
     }
     _get_full_url(url) {
-        return this.config.origin_url + url;    
+        if (url && url.length > 0 ){
+            let new_url = url_resolver.resolve(this.config.origin_url, url);
+            //clean Url - remove after #
+            new_url = this._clean_anchor_url(new_url);
+            // let size_of_new_url = new_url.length;
+            // if (new_url[size_of_new_url-1] == "/"){
+            //     return new_url.slice(0, size_of_new_url - 1);
+            // }
+            return new_url;
+        }      
     }
     async _get_html_by(url){
-        let html_content = null;
+        let res = null;
+        let responseUrl = null;
         try {
-            html_content = await this.request.get(url)
-            if (html_content.statusText !== 'OK') {
+            res = await this.request.get(url)
+            if (res.statusText !== 'OK') {
                 this._store_err_url(url);
                 return null;
             }
+            responseUrl = this._clean_anchor_url(res.request.res.responseUrl);
         } catch (e) {
-            // console.log(e)
             this._store_err_url(url);
             return null;
         }
-        return html_content.data;    
+        return { responseUrl: responseUrl,html:res.data};    
     }
     async _get_data() {
 
@@ -216,7 +231,10 @@ export default class Bot {
     _store_err_url() {
 
     }
-
+    _clean_anchor_url(url){
+        if(url)
+            return url.replace(/#([a-z]|[^a-z#]){1,20}$/, "");
+    }
     _is_existed(url) {
         return this.url_filter.has(url);
     }

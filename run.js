@@ -1,7 +1,7 @@
 const fs = require("fs")
 const log4js = require('log4js');
 
-import ABot from "./app/crawler/a_crawler"
+import MyBot from "./app/crawler/MyBot"
 
 // log4js.configure({
 //     appenders: { cheese: { type: 'file', filename: 'cheese.log' } },
@@ -19,20 +19,20 @@ logger.level = 'debug';
 let tuoi_tre_config = {
     name: 'crawl-storage-1',
     origin_url: 'https://tuoitre.vn',
-    should_visit_prefix: ['https://tuoitre.vn/'],
-    page_data_prefix: ['https://tuoitre.vn/'],
+    should_visit_prefix: ['https://tuoitre.vn'],
+    page_data_prefix: ['https://tuoitre.vn'],
     max_depth: 2,
     time_delay: 10,
     data_selector: {
-        title: "#main-detail > div.w980 > h1"
+        title: "#content > div > div > div.titleBar > h1"
     }
 };
 
-let bot = new ABot(tuoi_tre_config, logger);
-bot.update()
+let bot = new MyBot(tuoi_tre_config, logger);
+bot.restart()
 bot= null;
 // setInterval(()=> { 
 //     console.log("start");
-//     let bot = new ABot(tuoi_tre_config, logger);
+//     let bot = new MyBot(tuoi_tre_config, logger);
 //     bot.update()
-// },2*60*1000);
+// },30*1000);
