@@ -1,6 +1,6 @@
 {
-  "name": "crawler4nodejs",
-  "version": "0.0.10",
+  "name": "crawler4node",
+  "version": "0.0.1",
   "homepage": "https://github.com/hongluu/crawler4node",
   "dependencies": {
     "add": "^2.0.6",
@@ -17,7 +17,12 @@
     "yarn": "^1.15.2"
   },
   "scripts": {
-    "start": "node -r esm run.js"
+    "start": "node -r esm run.js",
+    "start-1": "ts-node -r tsconfig-paths/register index.ts"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "ts-node": "^8.1.0",
+    "typescript": "^3.4.5"
+  }
 }

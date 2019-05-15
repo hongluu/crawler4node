@@ -11,25 +11,19 @@ Crawler4nodejs is an open source web crawler for Node.js which provides a simple
 
 ## Installation
 ```
-npm install crawler4nodejs
+npm install crawler4node
 ```
 ## RUN
-#### Update scripts in package.json
+
 ```
-  "scripts": {
-    "start": "node -r esm index.js"
-  }
-```
-#### Run
-```
-npm install
+ts-node run.ts
 ```
 ## Quickstart
 You need to create a crawler class that extends Crawler. This class can override the `_process_data()` function.  
 
 ### Example
 ```js
-import Bot from "crawler4nodejs"
+import Bot from "crawler4node"
 const Cheerio = require('cheerio')
 
 export default class MyBot extends Bot{
