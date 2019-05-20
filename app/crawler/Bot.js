@@ -44,6 +44,7 @@ export default class Bot {
         });
         this.request = axios.create({ timeout: 30000});
         this.dataTest=[];
+        this.isTesting = false;
     }
 
     _init_config(config) {
@@ -77,8 +78,7 @@ export default class Bot {
         let update_filter = new Filter({ isUpdate: true });
         await this.crawl(update_filter);
         this.LOGGER.debug("FINISH " + this.config.name)
-        this.storeUrlFilterToFile(update_filter);
-        return this.dataTest;   
+        this.storeUrlFilterToFile(update_filter);  
     }
 
     async start() {
@@ -86,17 +86,18 @@ export default class Bot {
         await this.crawl(this.url_filter);
         this.LOGGER.debug("FINISH " + this.config.name)
         this.storeUrlFilterToFile(this.url_filter);
-        return this.dataTest;   
     }
     // Test các url trên link xuất phát
     async test() {
         this.LOGGER.debug("START " + this.config.name)
+        this.isTesting = true;
         this.config.max_depth = 2;
         await this.crawl(this.url_filter);
         this.LOGGER.debug("FINISH " + this.config.name)
+        this.storeUrlFilterToFile(this.url_filter);
         return this.dataTest;
     }
-
+    
     async crawl(url_filter) { 
         let max_depth = this.config.max_depth;
         this.config.allway_visit.forEach(url => url_filter.remove(url));
@@ -235,6 +236,35 @@ export default class Bot {
             }
         }
         return false;
+    }
+
+    _process_data(url, html) {
+        if (html && url) {
+            const $ = Cheerio.load(html)
+            let content_selectors = this.config.content_selector;
+            for (let i = 0; i < content_selectors.length; i++) {
+                let content_selector = content_selectors[i];
+                let data = {};
+
+                let attr = content_selector.name;
+
+                if (attr == 'url') {
+                    let url = $(content_selector.selector).attr('href');
+                    data[content_selector.name] = this._get_full_url(url)
+                } else {
+                    attr = content_selector.name;
+                    let text = $(content_selector.selector).text();
+                    if (text) {
+                        data[attr] = text.trim();
+                        if (attr == 'title') {
+                        }
+                        if(this.isTesting){
+                            this.dataTest.push(data)
+                        }
+                    }
+                }
+            }
+        }
     }
 
 }

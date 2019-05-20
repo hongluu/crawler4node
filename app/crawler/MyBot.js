@@ -24,7 +24,6 @@ export default class MyBot extends Bot{
                         }
                         this.dataTest.push(data)
                     }
-
                 }
             }
         }
