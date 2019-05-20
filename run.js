@@ -10,7 +10,7 @@ import MyBot from "./app/crawler/MyBot"
 
 //init log
 log4js.configure({
-    appenders: { cheese: { type: 'file', filename: 'bot.log' } },
+    appenders: { cheese: { type: 'console', filename: 'bot.log' } },
     categories: { default: { appenders: ['cheese'], level: 'error' } }
 });
 let logger = log4js.getLogger("web_crawler_1");
@@ -23,13 +23,22 @@ let tuoi_tre_config = {
     page_data_prefix: ['https://tuoitre.vn'],
     max_depth: 2,
     time_delay: 10,
-    data_selector: {
-        title: "#content > div > div > div.titleBar > h1"
-    }
+    content_selector: [
+        {   name: 'title',
+            selector: "h1"
+        },{
+            name: 'content',
+            selector: ".content>p,.main-content-body>h2"
+        }
+    ]
 };
 
 let bot = new MyBot(tuoi_tre_config, logger);
-bot.restart()
+bot.test().then((data)=>{
+    console.log(data);
+});
+
+
 bot= null;
 // setInterval(()=> { 
 //     console.log("start");

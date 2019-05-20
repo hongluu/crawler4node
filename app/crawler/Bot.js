@@ -23,6 +23,7 @@ const CONFIG_DEFAULT = {
     page_data_pattern: '',
     max_depth: -1,
     filter_storage: './storage/',
+    
 };
 
 export default class Bot {
@@ -42,6 +43,7 @@ export default class Bot {
             minTime: this.config.time_delay
         });
         this.request = axios.create({ timeout: 30000});
+        this.dataTest=[];
     }
 
     _init_config(config) {
@@ -66,7 +68,8 @@ export default class Bot {
             storage_path: this.json_filter_path,
             isUpdate: false
         });
-        this.start()
+        return await this.start();
+        
     }
 
     async update() {
@@ -74,16 +77,27 @@ export default class Bot {
         let update_filter = new Filter({ isUpdate: true });
         await this.crawl(update_filter);
         this.LOGGER.debug("FINISH " + this.config.name)
+        this.storeUrlFilterToFile(update_filter);
+        return this.dataTest;   
     }
 
     async start() {
         this.LOGGER.debug("START " + this.config.name)
         await this.crawl(this.url_filter);
         this.LOGGER.debug("FINISH " + this.config.name)
-        
+        this.storeUrlFilterToFile(this.url_filter);
+        return this.dataTest;   
     }
-    async crawl(url_filter) {
-        
+    // Test các url trên link xuất phát
+    async test() {
+        this.LOGGER.debug("START " + this.config.name)
+        this.config.max_depth = 2;
+        await this.crawl(this.url_filter);
+        this.LOGGER.debug("FINISH " + this.config.name)
+        return this.dataTest;
+    }
+
+    async crawl(url_filter) { 
         let max_depth = this.config.max_depth;
         this.config.allway_visit.forEach(url => url_filter.remove(url));
         if (max_depth > 0) {
@@ -92,7 +106,9 @@ export default class Bot {
         else {
             await this.visit(url_filter, this.config.origin_url);
         }
-        let exported = this.url_filter.saveAsJSON()
+    }
+    async storeUrlFilterToFile(url_filter){
+        let exported = url_filter.saveAsJSON()
         this.fs.writeFile(this.json_filter_path, JSON.stringify(exported), () => { });
     }
 
