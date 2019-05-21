@@ -23,9 +23,10 @@ let tuoi_tre_config = {
     page_data_prefix: ['https://tuoitre.vn'],
     max_depth: 2,
     time_delay: 10,
+    max_url:10,
     content_selector: [
         {   name: 'title',
-            selector: "h1"
+            selector: "#main-detail > div.w980 > h1"
         },{
             name: 'content',
             selector: ".content>p,.main-content-body>h2"

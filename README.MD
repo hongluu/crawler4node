@@ -54,13 +54,18 @@ export default class ACrawler extends Crawler{
 let tuoi_tre_config = {
     name: 'crawl-storage-1',
     origin_url: 'https://tuoitre.vn',
-    should_visit_prefix: ['https://tuoitre.vn/'],
-    page_data_prefix: ['https://tuoitre.vn/'],
-    max_depth:3,
-    time_delay: 300  //3 request per seconds
-    data_selector:{
-        title: "#main-detail > div.w980 > h1"
-    }
+    should_visit_prefix: ['https://tuoitre.vn'],
+    page_data_prefix: ['https://tuoitre.vn'],
+    max_depth: 2,
+    time_delay: 10,
+    content_selector: [
+        {   name: 'title',
+            selector: "h1"
+        },{
+            name: 'content',
+            selector: ".content>p,.main-content-body>h2"
+        }
+    ]
 };
 
 let crawler = new ACrawler(tuoi_tre_config, logger);

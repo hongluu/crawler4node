@@ -23,6 +23,7 @@ const CONFIG_DEFAULT = {
     page_data_pattern: '',
     max_depth: -1,
     filter_storage: './storage/',
+    max_url :900000000
     
 };
 
@@ -94,7 +95,7 @@ export default class Bot {
         this.config.max_depth = 2;
         await this.crawl(this.url_filter);
         this.LOGGER.debug("FINISH " + this.config.name)
-        this.storeUrlFilterToFile(this.url_filter);
+        // this.storeUrlFilterToFile(this.url_filter);
         return this.dataTest;
     }
     
@@ -199,7 +200,7 @@ export default class Bot {
     }
     async _get_data() {
 
-    }
+    }   
     _store_err_url() {
 
     }
@@ -242,10 +243,9 @@ export default class Bot {
         if (html && url) {
             const $ = Cheerio.load(html)
             let content_selectors = this.config.content_selector;
+            let data = {};
             for (let i = 0; i < content_selectors.length; i++) {
                 let content_selector = content_selectors[i];
-                let data = {};
-
                 let attr = content_selector.name;
 
                 if (attr == 'url') {
@@ -258,13 +258,21 @@ export default class Bot {
                         data[attr] = text.trim();
                         if (attr == 'title') {
                         }
-                        if(this.isTesting){
-                            this.dataTest.push(data)
-                        }
                     }
                 }
             }
+            if (data.content){
+                if (this.isTesting) {
+                    this.dataTest.push(data)
+                }
+                this._store_data(data);
+            }
+            
         }
+        
+    }
+    _store_data(data) {
+
     }
 
 }
