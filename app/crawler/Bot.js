@@ -8,6 +8,7 @@ const axios = require('axios')
 const Cheerio = require('cheerio')
 import Bottleneck from "bottleneck";
 const url_resolver = require('url');
+const log4js = require('log4js');
 
 const CONFIG_DEFAULT = {
     name: 'crawl-storage-1',
@@ -26,14 +27,21 @@ const CONFIG_DEFAULT = {
     max_url :900000000
     
 };
+log4js.configure({
+    appenders: { cheese: { type: 'console', filename: 'bot.log' } },
+    categories: { default: { appenders: ['cheese'], level: 'error' } }
+});
+
 
 export default class Bot {
-    constructor(config, logger) {
+    constructor(config) {
         this.config = this._init_config(config) 
+        console.log(config)
         this.data = {};
         this.vm = this;
         this.fs = require("fs");
-        this.LOGGER = logger;
+        this.LOGGER = log4js.getLogger("web_crawler_1");;
+        this.LOGGER.level = "debug";
         this.promise_list = []
         this.json_filter_path = this.config.filter_storage + this.config.name + ".json";
         this.url_filter = new Filter({

@@ -68,7 +68,7 @@ let tuoi_tre_config = {
     ]
 };
 
-let crawler = new ACrawler(tuoi_tre_config, logger);
+let crawler = new ACrawler(tuoi_tre_config);
 crawler.start();
 ```
 

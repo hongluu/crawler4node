@@ -1,5 +1,4 @@
 const fs = require("fs")
-const log4js = require('log4js');
 
 import MyBot from "./app/crawler/MyBot"
 
@@ -9,12 +8,7 @@ import MyBot from "./app/crawler/MyBot"
 // });
 
 //init log
-log4js.configure({
-    appenders: { cheese: { type: 'console', filename: 'bot.log' } },
-    categories: { default: { appenders: ['cheese'], level: 'error' } }
-});
-let logger = log4js.getLogger("web_crawler_1");
-logger.level = 'debug';
+
 
 let tuoi_tre_config = {
     name: 'crawl-storage-1',
@@ -34,7 +28,27 @@ let tuoi_tre_config = {
     ]
 };
 
-let bot = new MyBot(tuoi_tre_config, logger);
+let a = {
+    name: 'tuoitre_vn',
+    origin_url: 'https://tuoitre.vn',
+    should_visit_prefix: [],
+    page_data_prefix: [],
+    should_visit_pattern: '',
+    page_data_pattern: '',
+    max_depth: '0',
+    time_delay: 10,
+    content_selector: [
+        { name: 'title', selector: '#main-detail > div.w980 > h1' }, {
+            name: 'content',
+            selector: ".content>p,.main-content-body>h2"
+        }
+    ],
+    proxyl: { host: '', port: '0', auth: { username: '', password: '' } },
+    
+    
+}
+
+let bot = new MyBot(a);
 bot.test().then((data)=>{
     console.log(data);
 });
