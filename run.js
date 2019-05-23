@@ -29,23 +29,23 @@ let tuoi_tre_config = {
 };
 
 let a = {
-    name: 'tuoitre_vn',
-    origin_url: 'https://tuoitre.vn',
-    should_visit_prefix: [],
-    page_data_prefix: [],
+    name: 'hanoimoi_com.vn',
+    origin_url: 'http://hanoimoi.com.vn',
+    should_visit_prefix: ['http://hanoimoi.com.vn'],
+    page_data_prefix: ['http://hanoimoi.com.vn'],
     should_visit_pattern: '',
     page_data_pattern: '',
     max_depth: '0',
-    time_delay: 10,
+    time_delay: '10',
     content_selector: [
-        { name: 'title', selector: '#main-detail > div.w980 > h1' }, {
+        { name: 'title', selector: '#NewsDetails > h1' },
+        {
             name: 'content',
-            selector: ".content>p,.main-content-body>h2"
+            selector: '#NewsDetails > div.content > div.gallery-included ' +
+                '> div.article > div:nth-child(1) > strong,#abody'
         }
     ],
-    proxyl: { host: '', port: '0', auth: { username: '', password: '' } },
-    
-    
+    proxyl: { host: '', port: '0', auth: { username: '', password: '' } }
 }
 
 let bot = new MyBot(a);

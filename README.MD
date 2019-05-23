@@ -52,20 +52,22 @@ export default class ACrawler extends Crawler{
 ```
 ```js
 let tuoi_tre_config = {
-    name: 'crawl-storage-1',
-    origin_url: 'https://tuoitre.vn',
-    should_visit_prefix: ['https://tuoitre.vn'],
-    page_data_prefix: ['https://tuoitre.vn'],
-    max_depth: 2,
-    time_delay: 10,
-    content_selector: [
-        {   name: 'title',
-            selector: "h1"
-        },{
-            name: 'content',
-            selector: ".content>p,.main-content-body>h2"
-        }
-    ]
+  name: 'thanhnien_vn',
+  origin_url: 'https://thanhnien.vn',
+  should_visit_prefix: [ 'https://thanhnien.vn' ],
+  page_data_prefix: [ 'https://thanhnien.vn' ],
+  should_visit_pattern: '',
+  page_data_pattern: '',
+  max_depth: '0',
+  time_delay: '0',
+  content_selector: [
+    { name: 'title', selector: '#storybox > h1' },
+    {
+      name: 'title',
+      selector: '#chapeau > div,.l-content .details__content'
+    }
+  ],
+  proxyl: { host: '', port: '0', auth: { username: '', password: '' } }
 };
 
 let crawler = new ACrawler(tuoi_tre_config);

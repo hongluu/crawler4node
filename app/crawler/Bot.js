@@ -101,6 +101,7 @@ export default class Bot {
         this.LOGGER.debug("START " + this.config.name)
         this.isTesting = true;
         this.config.max_depth = 2;
+        this.url_filter = new Filter({isUpdate: true});
         await this.crawl(this.url_filter);
         this.LOGGER.debug("FINISH " + this.config.name)
         // this.storeUrlFilterToFile(this.url_filter);
@@ -202,6 +203,7 @@ export default class Bot {
             responseUrl = this._clean_anchor_url(res.request.res.responseUrl);
         } catch (e) {
             this._store_err_url(url);
+            console.log(e);
             return null;
         }
         return { responseUrl: responseUrl,html:res.data};    
