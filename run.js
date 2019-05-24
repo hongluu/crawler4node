@@ -35,8 +35,8 @@ let a = {
     page_data_prefix: ['http://hanoimoi.com.vn'],
     should_visit_pattern: '',
     page_data_pattern: '',
-    max_depth: '0',
-    time_delay: '10',
+    max_depth: 3,
+    time_delay: 1000,
     content_selector: [
         { name: 'title', selector: '#NewsDetails > h1' },
         {
@@ -49,7 +49,7 @@ let a = {
 }
 
 let bot = new MyBot(a);
-bot.test().then((data)=>{
+bot.update().then((data)=>{
     console.log(data);
 });
 

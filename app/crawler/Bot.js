@@ -154,7 +154,7 @@ export default class Bot {
                     return
                 }
                 if (this._is_should_visit(cur_url)) {
-                    return this.visit(filter,cur_url, max_depth - 1);
+                    return this.limiter.schedule(() => this.visit(filter,cur_url, max_depth - 1));
                 }
             })).catch(e => { this.LOGGER.error(e) });
         }
@@ -274,15 +274,17 @@ export default class Bot {
             if (data.content){
                 if (this.isTesting) {
                     this.dataTest.push(data)
+                }else{
+                    this._store_data(url, data);
                 }
-                this._store_data(data);
             }
+            
             
         }
         
     }
-    _store_data(data) {
-
+    _store_data(url,data) {
+        this.fs.appendFileSync("01_url.txt", url + "\n", () => { })
     }
 
 }
