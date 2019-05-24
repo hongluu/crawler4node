@@ -36,7 +36,7 @@ let a = {
     should_visit_pattern: '',
     page_data_pattern: '',
     max_depth: 3,
-    time_delay: 1000,
+    time_delay: 100,
     content_selector: [
         { name: 'title', selector: '#NewsDetails > h1' },
         {

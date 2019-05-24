@@ -94,7 +94,7 @@ export default class Bot {
         this.LOGGER.debug("START " + this.config.name)
         await this.crawl(this.url_filter);
         this.LOGGER.debug("FINISH " + this.config.name)
-        this.storeUrlFilterToFile(this.url_filter);
+        // this.storeUrlFilterToFile(this.url_filter);
     }
     // Test các url trên link xuất phát
     async test() {
