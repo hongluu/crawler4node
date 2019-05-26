@@ -15,7 +15,7 @@ let tuoi_tre_config = {
     origin_url: 'https://tuoitre.vn',
     should_visit_prefix: ['https://tuoitre.vn'],
     page_data_prefix: ['https://tuoitre.vn'],
-    max_depth: 2,
+    max_depth: 0,
     time_delay: 10,
     max_url:10,
     content_selector: [
@@ -48,7 +48,7 @@ let a = {
     proxyl: { host: '', port: '0', auth: { username: '', password: '' } }
 }
 
-let bot = new MyBot(a);
+let bot = new MyBot(tuoi_tre_config);
 bot.update().then((data)=>{
     console.log(data);
 });
