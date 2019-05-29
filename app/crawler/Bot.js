@@ -64,62 +64,32 @@ export default class Bot {
         return _config;
     }
 
-    async restart() {
-        try {
-            this.fs.unlinkSync(this.json_filter_path, () => { })
-        } catch (e) {
-        }
-
-        this.url_filter = new Filter({
-            storage_path: this.json_filter_path,
-            isUpdate: false
-        });
-        return await this.start();
-
-    }
-
-    async update() {
-        this.LOGGER.debug("UPDATE " + this.config.name)
-        let update_filter = new Filter({ isUpdate: true });
-        await this.crawl(update_filter);
-        this.LOGGER.debug("FINISH " + this.config.name)
-        this.storeUrlFilterToFile(update_filter);
-    }
-
-    async start() {
-        this.LOGGER.debug("START " + this.config.name)
-        await this.crawl(this.url_filter);
-        this.LOGGER.debug("FINISH " + this.config.name)
-        // this.storeUrlFilterToFile(this.url_filter);
-    }
     // Test các url trên link xuất phát
     async test() {
         this.LOGGER.debug("START " + this.config.name)
         this.isTesting = true;
         this.config.max_depth = 2;
         this.url_filter = new Filter({ isUpdate: true });
-        await this.crawl(this.url_filter);
+        await this.run(this.url_filter);
         this.LOGGER.debug("FINISH " + this.config.name)
         // this.storeUrlFilterToFile(this.url_filter);
         return this.dataTest;
     }
 
-    async crawl(url_filter) {
+    async run() {
         let max_depth = this.config.max_depth;
         // this.config.allway_visit.forEach(url => url_filter.remove(url));
         if (max_depth > 0 && max_depth < 5) {
-            this.url_filter = new Filter({
-                isUpdate: true
-            })
-            await this.visit(url_filter, this.config.origin_url, max_depth);
+            this.LOGGER.debug("UPDATE")
+            this.update_filter = new Filter({ isUpdate: true });
+            await this.visit(this.update_filter, this.config.origin_url, max_depth);
         }
         else {
-            this.url_filter = new Filter({
-                storage_path: this.json_filter_path,
-                isUpdate: false
-            });
-            await this.first(this.config.origin_url);
+            this.LOGGER.debug("ALL")
+            this.url_filter = new Filter({ isUpdate: false });
+            await this.first();
         }
+        this.LOGGER.debug("DONE")
     }
     getNextUrl() {
         return this.assignUrls.pop();
@@ -156,7 +126,6 @@ export default class Bot {
             await this.limiter.schedule(() => Promise.all(this.getNextUrls(queue_size).map(url => {
                 return self.processPage(url);
             })));
-
         }
     }
     pushToAssignList(url) {

@@ -15,9 +15,9 @@ let tuoi_tre_config = {
     origin_url: 'https://tuoitre.vn',
     should_visit_prefix: ['https://tuoitre.vn'],
     page_data_prefix: ['https://tuoitre.vn'],
-    max_depth: 0,
-    time_delay: 1,
-    max_url:10,
+    max_depth: 10,
+    time_delay: 333,
+    max_url:3,
     content_selector: [
         {   name: 'title',
             selector: "#main-detail > div.w980 > h1"
@@ -52,7 +52,7 @@ let bot = new MyBot(tuoi_tre_config);
 // bot.update().then((data)=>{
 //     console.log(data);
 // });
-bot.start();
+bot.run();
 
 bot= null;
 // setInterval(()=> { 

@@ -33,7 +33,7 @@
 const { CuckooFilter } = require('bloom-filters')
 export default class Filter {
 
-    constructor(option, ) {
+    constructor(option ) {
         this.MAX_ENTRIES_PER_BUCKET = 32;
         this.MIN_ENTRIES_PER_BUCKET = 8;
         if (option) {
