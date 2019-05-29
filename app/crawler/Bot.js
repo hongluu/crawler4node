@@ -121,7 +121,7 @@ export default class Bot {
         let queue_size = this.getQueueSizeBy(this.config.time_delay);
         await this.processPage(this.config.origin_url)
         while (true) {
-            if (this.assignUrls.length == 0 || !this.isFinished ) {
+            if (this.assignUrls.length == 0 || this.isFinished ) {
                 return;
             }
             await this.limiter.schedule(() => Promise.all(this.getNextUrls(queue_size).map(url => {
