@@ -16,7 +16,7 @@ let tuoi_tre_config = {
     should_visit_prefix: ['https://tuoitre.vn'],
     page_data_prefix: ['https://tuoitre.vn'],
     max_depth: 0,
-    time_delay: 10,
+    time_delay: 1,
     max_url:10,
     content_selector: [
         {   name: 'title',
@@ -49,10 +49,10 @@ let a = {
 }
 
 let bot = new MyBot(tuoi_tre_config);
-bot.update().then((data)=>{
-    console.log(data);
-});
-
+// bot.update().then((data)=>{
+//     console.log(data);
+// });
+bot.start();
 
 bot= null;
 // setInterval(()=> { 
