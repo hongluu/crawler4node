@@ -80,15 +80,16 @@ export default class Bot {
     async run() {
         let max_depth = this.config.max_depth;
         // this.config.allway_visit.forEach(url => url_filter.remove(url));
-        if (max_depth > 0 && max_depth < 5) {
+        if (max_depth > 0 && max_depth < 15) {
             this.LOGGER.debug("UPDATE")
-            this.update_filter = new Filter({ isUpdate: true });
-            await this.visit(this.update_filter, this.config.origin_url, max_depth);
+            this.url_filter = new Filter({ isUpdate: true });
+            // await this.visit(this.update_filter, this.config.origin_url, max_depth);
+            await this.crawl_depth();
         }
         else {
             this.LOGGER.debug("ALL")
             this.url_filter = new Filter({ isUpdate: false });
-            await this.first();
+            await this.crawl_first();
         }
         this.LOGGER.debug("DONE")
     }
@@ -106,16 +107,27 @@ export default class Bot {
         }
         return output;
     }
+    getNextDepthUrls(queue_size) {
+        let output = [];
+        let size = this.assignDepthUrls.length
+        if (size <= queue_size) {
+            queue_size = size;
+        }
+        for (let i = 0; i < queue_size; i++) {
+            output.push(this.assignDepthUrls.shift())
+        }
+        return output;
+    }
     getQueueSizeBy(time_delay) {
-        if (!time_delay || time_delay == 0) {
-            return 100;
+        if (!time_delay || time_delay  <= 10) {
+            return 10;
         }
         if (time_delay > 1000) {
             return 1;
         }
         return 1000 / time_delay;
     }
-    async first() {
+    async crawl_first() {
         this.assignUrls = [];
         let self = this;
         let queue_size = this.getQueueSizeBy(this.config.time_delay);
@@ -129,15 +141,66 @@ export default class Bot {
             })));
         }
     }
+
+    async crawl_depth() {
+        this.assignDepthUrls = [];
+        let self = this;
+        let queue_size = this.getQueueSizeBy(this.config.time_delay);
+        // run with depth = 1
+        await this.processPageWithDepth(this.config.origin_url,1)
+        // run with > 0
+        while (true) {
+            // console.log(this.assignDepthUrls.length);
+            if (this.assignDepthUrls.length == 0 || this.isFinished) {
+                return;
+            }
+            await this.limiter.schedule(() => Promise.all(this.getNextDepthUrls(queue_size).map(depth_url => {
+                return self.processPageWithDepth(depth_url[1], depth_url[0]+1);
+            })));
+        }
+    }
+
     pushToAssignList(url) {
         if (!this._is_existed(url)) {
             this.url_filter.add(url);
             this.assignUrls.push(url);
         }
     }
+    pushToAssignDepthList(url, depth) {
+        if (!this._is_existed(url)) {
+            this.url_filter.add(url);
+            this.assignDepthUrls.push([depth, url]);
+        }
+    }
     wait = () => {
         var waitTill = new Date(new Date().getTime() + 1 * 1000);
         while (waitTill > new Date()) { }
+    }
+    async processPageWithDepth(url,depth) {
+        // console.log([depth,url])
+        if (depth > this.config.max_depth){
+            return[]
+        }
+        let html_content = await this._get_html_by(url);
+        if (!html_content) {
+            return [];
+        }
+        const $ = Cheerio.load(html_content.html)
+        let url_els = $('a');
+        for (let i = 0; i < url_els.length; i++) {
+            let url_a = $(url_els[i]).prop('href');
+            if (url_a) {
+                url_a = this._get_full_url(url_a);
+                if (this._is_should_visit(url_a)) {
+                    this.pushToAssignDepthList(url_a, depth);
+                }
+            }
+        }
+        if (this._is_page_data(url)) {
+            this._process_data(url, html_content.html);
+        }
+        return { html: html_content.html };
+
     }
     async processPage(url) {
         let html_content = await this._get_html_by(url);

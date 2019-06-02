@@ -15,8 +15,8 @@ let tuoi_tre_config = {
     origin_url: 'https://tuoitre.vn',
     should_visit_prefix: ['https://tuoitre.vn'],
     page_data_prefix: ['https://tuoitre.vn'],
-    max_depth: 10,
-    time_delay: 333,
+    max_depth: 2,
+    time_delay: 10,
     max_url:3,
     content_selector: [
         {   name: 'title',
