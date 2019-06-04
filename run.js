@@ -11,21 +11,32 @@ import MyBot from "./app/crawler/MyBot"
 
 
 let tuoi_tre_config = {
-    name: 'crawl-storage-1',
+    name: 'tuoitre_vn',
     origin_url: 'https://tuoitre.vn',
     should_visit_prefix: ['https://tuoitre.vn'],
     page_data_prefix: ['https://tuoitre.vn'],
-    max_depth: 2,
-    time_delay: 10,
-    max_url:3,
+    should_visit_pattern: '',
+    page_data_pattern: '',
+    max_depth: 0,
+    time_delay: 100,
     content_selector: [
-        {   name: 'title',
-            selector: "#main-detail > div.w980 > h1"
-        },{
+        { name: 'title', selector: '#main-detail > div.w980 > h1' },
+        {
             name: 'content',
-            selector: ".content>p,.main-content-body>h2"
+            selector: '#mainContentDetail h2,#main-detail-body p'
+        },
+        { name: 'strPostedAt', selector: '#main-detail > div.w980 > div' },
+        {
+            name: 'category',
+            selector: '#content > div.content.w980 > ' +
+                'div.title-content.clearfix > div > div > ' +
+                'ul > li > a'
         }
-    ]
+    ],
+    proxyl: { host: '', port: '0', auth: { username: '', password: '' } },
+    isUpdate: true,
+    bot_id: '5ce96029cecf3b157c014667',
+    redis: { port: 6379, host: '127.0.0.1' }
 };
 
 let a = {
@@ -36,7 +47,7 @@ let a = {
     should_visit_pattern: '',
     page_data_pattern: '',
     max_depth: 3,
-    time_delay: 100,
+    time_delay: 10,
     content_selector: [
         { name: 'title', selector: '#NewsDetails > h1' },
         {

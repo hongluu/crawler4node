@@ -133,6 +133,7 @@ export default class Bot {
         let queue_size = this.getQueueSizeBy(this.config.time_delay);
         await this.processPage(this.config.origin_url)
         while (true) {
+            this.LOGGER.debug("Execute start Url:" + this.assignUrls.length);
             if (this.assignUrls.length == 0 || this.isFinished ) {
                 return;
             }
@@ -197,7 +198,7 @@ export default class Bot {
             }
         }
         if (this._is_page_data(url)) {
-            this._process_data(url, html_content.html);
+          await  this._process_data(url, html_content.html);
         }
         return { html: html_content.html };
 
@@ -219,7 +220,7 @@ export default class Bot {
             }
         }
         if (this._is_page_data(url)) {
-            this._process_data(url, html_content.html);
+            await this._process_data(url, html_content.html);
         }
         return { html: html_content.html };
 
@@ -229,42 +230,42 @@ export default class Bot {
         this.fs.writeFile(this.json_filter_path, JSON.stringify(exported), () => { });
     }
 
-    async visit(filter, url, max_depth) {
-        if (filter.has(url)) {
-            return
-        }
-        if (max_depth == 1) {
-            filter.add(url);
-            let html_content = await this._get_html_by(url)
-            if (html_content) {
-                let responseUrl = html_content.responseUrl;
-                if (responseUrl && responseUrl !== url) {
-                    filter.add(url);
-                }
-                if (this._is_page_data(responseUrl)) {
-                    this._process_data(url, html_content.html);
-                }
-            }
+    // async visit(filter, url, max_depth) {
+    //     if (filter.has(url)) {
+    //         return
+    //     }
+    //     if (max_depth == 1) {
+    //         filter.add(url);
+    //         let html_content = await this._get_html_by(url)
+    //         if (html_content) {
+    //             let responseUrl = html_content.responseUrl;
+    //             if (responseUrl && responseUrl !== url) {
+    //                 filter.add(url);
+    //             }
+    //             if (this._is_page_data(responseUrl)) {
+    //                 this._process_data(url, html_content.html);
+    //             }
+    //         }
 
-            return;
-        }
-        filter.add(url);
-        let page = await this._flip_urls(url);
-        if (this._is_page_data(url)) {
-            this._process_data(url, page.html);
-        }
-        let urls = page.urls;
-        if (urls) {
-            await Promise.all(urls.map(cur_url => {
-                if (filter.has(cur_url)) {
-                    return
-                }
-                if (this._is_should_visit(cur_url)) {
-                    return this.limiter.schedule(() => this.visit(filter, cur_url, max_depth - 1));
-                }
-            })).catch(e => { this.LOGGER.error(e) });
-        }
-    }
+    //         return;
+    //     }
+    //     filter.add(url);
+    //     let page = await this._flip_urls(url);
+    //     if (this._is_page_data(url)) {
+    //         this._process_data(url, page.html);
+    //     }
+    //     let urls = page.urls;
+    //     if (urls) {
+    //         await Promise.all(urls.map(cur_url => {
+    //             if (filter.has(cur_url)) {
+    //                 return
+    //             }
+    //             if (this._is_should_visit(cur_url)) {
+    //                 return this.limiter.schedule(() => this.visit(filter, cur_url, max_depth - 1));
+    //             }
+    //         })).catch(e => { this.LOGGER.error(e) });
+    //     }
+    // }
 
     async _flip_urls(url) {
         let html_content = await this._get_html_by(url);
