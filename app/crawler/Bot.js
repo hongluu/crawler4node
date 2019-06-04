@@ -28,7 +28,7 @@ const CONFIG_DEFAULT = {
 
 };
 log4js.configure({
-    appenders: { cheese: { type: 'console', filename: 'bot.log' } },
+    appenders: { cheese: { type: 'file', filename: 'bot.log' } },
     categories: { default: { appenders: ['cheese'], level: 'error' } }
 });
 
@@ -40,7 +40,7 @@ export default class Bot {
         this.data = {};
         this.vm = this;
         this.fs = require("fs");
-        this.LOGGER = log4js.getLogger("web_crawler_1");;
+        this.LOGGER = log4js.getLogger(this.config.name);;
         this.LOGGER.level = "debug";
         this.promise_list = []
         this.json_filter_path = this.config.filter_storage + this.config.name + ".json";
@@ -382,6 +382,9 @@ export default class Bot {
                     this.dataTest.push(data)
                 } else {
                     this._store_data(url, data);
+                    this.fs.appendFileSync("01_data.txt", url + "\n", () => { })
+                    this.fs.appendFileSync("01_data.txt", html + "\n", () => { })
+                    this.isFinished = true;
                 }
             }
 
