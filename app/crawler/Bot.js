@@ -9,6 +9,7 @@ const Cheerio = require('cheerio')
 import Bottleneck from "bottleneck";
 const url_resolver = require('url');
 const log4js = require('log4js');
+var path = require('path');
 
 const CONFIG_DEFAULT = {
     name: 'crawl-storage-1',
@@ -27,10 +28,7 @@ const CONFIG_DEFAULT = {
     max_url: 900000000
 
 };
-log4js.configure({
-    appenders: { cheese: { type: 'file', filename: 'bot.log' } },
-    categories: { default: { appenders: ['cheese'], level: 'error' } }
-});
+
 
 
 export default class Bot {
@@ -40,6 +38,11 @@ export default class Bot {
         this.data = {};
         this.vm = this;
         this.fs = require("fs");
+        //config log
+        log4js.configure({
+            appenders: { cheese: { type: 'file', filename: __dirname+"/log/" + this.config.name+'.log' } },
+            categories: { default: { appenders: ['cheese'], level: 'error' } }
+        });
         this.LOGGER = log4js.getLogger(this.config.name);;
         this.LOGGER.level = "debug";
         this.promise_list = []

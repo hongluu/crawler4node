@@ -29,7 +29,6 @@ export default class MyBot extends Bot{
                     let post = {};
                     try {
                         post.url = this._get_full_url($(elements.url[itemtIndex]).attr('href')) + '#' + $(elements.url[itemtIndex]).text().replace('#', '');
-                        console.log(post.url)
                         post.title = title;
                         post.content = $(elements.content[itemtIndex]).text() ? $(elements.content[itemtIndex]).text().trim() : '';
                         post.strPostedAt = $(elements.strPostedAt[itemtIndex]).text();
