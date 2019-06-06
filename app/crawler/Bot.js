@@ -136,13 +136,13 @@ export default class Bot {
         let queue_size = this.getQueueSizeBy(this.config.time_delay);
         await this.processPage(this.config.origin_url)
         while (true) {
-            this.LOGGER.debug("Execute start Url:" + this.assignUrls.length);
+            this.LOGGER.debug("F - Execute start Url:" + this.assignUrls.length);
             if (this.assignUrls.length == 0 || this.isFinished ) {
                 return;
             }
-            await this.limiter.schedule(() => Promise.all(this.getNextUrls(queue_size).map(url => {
+            await  Promise.all(this.getNextUrls(queue_size).map(url => {
                 return self.processPage(url);
-            })));
+            }));
         }
     }
 
@@ -154,13 +154,13 @@ export default class Bot {
         await this.processPageWithDepth(this.config.origin_url,1)
         // run with > 0
         while (true) {
-            // console.log(this.assignDepthUrls.length);
+            this.LOGGER.debug("U - Execute start Url:" + this.assignUrls.length);
             if (this.assignDepthUrls.length == 0 || this.isFinished) {
                 return;
             }
-            await this.limiter.schedule(() => Promise.all(this.getNextDepthUrls(queue_size).map(depth_url => {
+            await Promise.all(this.getNextDepthUrls(queue_size).map(depth_url => {
                 return self.processPageWithDepth(depth_url[1], depth_url[0]+1);
-            })));
+            }));
         }
     }
 
