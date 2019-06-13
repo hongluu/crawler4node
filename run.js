@@ -9,8 +9,30 @@ import MyBot from "./app/crawler/MyBot"
 
 //init log
 
-
 let tuoi_tre_config = {
+    name: 'tuoitre_vn',
+    origin_url: 'https://tuoitre.vn',
+    should_visit_prefix: ['https://tuoitre.vn'],
+    page_data_prefix: ['https://tuoitre.vn'],
+    should_visit_pattern: '',
+    page_data_pattern: '',
+    max_depth: 0,
+    time_delay: 10,
+    content_selector: [
+        { name: 'title', selector: '#main-detail > div.w980 > h1' },
+        {
+            name: 'content',
+            selector: '#mainContentDetail h2,#main-detail-body p'
+        }
+    ],
+    proxyl: { host: '', port: '0', auth: { username: '', password: '' } },
+    isUpdate: true,
+    bot_id: '5ce8ca109bbaf40ed7b5bff0',
+    redis: { port: 6379, host: '127.0.0.1' }
+}
+
+
+let ttv = {
     name: 'ttvnol_com',
     origin_url: 'http://ttvnol.com',
     should_visit_prefix: ['http://ttvnol.com'],

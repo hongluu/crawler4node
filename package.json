@@ -1,6 +1,6 @@
 {
   "name": "crawler4nodejs",
-  "version": "1.0.6",
+  "version": "1.0.8",
   "homepage": "https://github.com/hongluu/crawler4node",
   "dependencies": {
     "add": "^2.0.6",
@@ -17,7 +17,8 @@
     "yarn": "^1.15.2"
   },
   "scripts": {
-    "start": "node -r esm run.js"
+    "start": "node -r esm run.js",
+    "dev": "node --prof -r esm run.js"
   },
   "license": "MIT"
 }

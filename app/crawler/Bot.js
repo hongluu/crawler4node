@@ -100,15 +100,11 @@ export default class Bot {
         return this.assignUrls.pop();
     }
     getNextUrls(queue_size) {
-        let output = [];
         let size = this.assignUrls.length
         if (size <= queue_size) {
             queue_size = size;
         }
-        for (let i = 0; i < queue_size; i++) {
-            output.push(this.assignUrls.shift())
-        }
-        return output;
+        return this.assignUrls.splice(0, queue_size)
     }
     getNextDepthUrls(queue_size) {
         let output = [];
@@ -140,7 +136,7 @@ export default class Bot {
             if (this.assignUrls.length == 0 || this.isFinished ) {
                 return;
             }
-            await  Promise.all(this.getNextUrls(queue_size).map(url => {
+            await Promise.all(this.getNextUrls(queue_size).map(url => {
                 return self.processPage(url);
             }));
         }
@@ -308,12 +304,12 @@ export default class Bot {
             res = await this.request.get(url)
             if (res.statusText !== 'OK') {
                 this._store_err_url(url);
-                return null;
+                return { responseUrl: '', html: '' };
             }
             responseUrl = this._clean_anchor_url(res.request.res.responseUrl);
         } catch (e) {
-            this._store_err_url(url);
-            return null;
+            //this._store_err_url(url);
+            return { responseUrl: '', html:'' };
         }
         return { responseUrl: responseUrl, html: res.data };
     }
@@ -343,6 +339,9 @@ export default class Bot {
 
     _is_should_visit(url_a) {
         // check prefix
+        if (!url_a || url_a.length>255){
+            return false;
+        }
         if (this._is_list_contain(this.config.should_visit_prefix, url_a)) {
             return true;
         };
@@ -351,7 +350,7 @@ export default class Bot {
 
     _is_list_contain(list, x) {
         for (let i = 0; i < list.length; i++) {
-            if (x.includes(list[i])) {
+            if (x.startsWith(list[i])) {
                 return true;
             }
         }
@@ -385,9 +384,7 @@ export default class Bot {
                     this.dataTest.push(data)
                 } else {
                     this._store_data(url, data);
-                    this.fs.appendFileSync("01_data.txt", url + "\n", () => { })
-                    this.fs.appendFileSync("01_data.txt", html + "\n", () => { })
-                    this.isFinished = true;
+                    // this.isFinished = true;
                 }
             }
 
@@ -396,7 +393,8 @@ export default class Bot {
 
     }
     _store_data(url, data) {
-        this.fs.appendFileSync("01_url.txt", url + "\n", () => { })
+        this.fs.appendFileSync("01_data.txt", url + "\n" + data + "\n", () => { })
+        this.fs.appendFileSync("01_url.txt", url+ "\n", () => { })
     }
 
 }

@@ -7,7 +7,7 @@ export default class MyBot extends Bot{
         this.fs.appendFileSync("01_error.txt", url + "\n", () => { })
     }
 
-    async _process_data(url, html) {
+    async _process_data1(url, html) {
         // let res = this.redisClient.hgetall("bull:Forum_Bot:" + this.config.bot_id, (err, res) => {
         // if(!res) this.isFinished = true;
 
