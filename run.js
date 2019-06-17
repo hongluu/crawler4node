@@ -1,5 +1,7 @@
 const fs = require("fs")
 
+
+
 import MyBot from "./app/crawler/MyBot"
 
 // log4js.configure({

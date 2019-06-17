@@ -150,7 +150,7 @@ export default class Bot {
         await this.processPageWithDepth(this.config.origin_url,1)
         // run with > 0
         while (true) {
-            this.LOGGER.debug("U - Execute start Url:" + this.assignUrls.length);
+            this.LOGGER.debug("U - Execute start Url:" + this.assignDepthUrls.length);
             if (this.assignDepthUrls.length == 0 || this.isFinished) {
                 return;
             }
@@ -278,7 +278,7 @@ export default class Bot {
             let url_a = $(url_els[i]).prop('href');
             if (url_a) {
                 url_a = this._get_full_url(url_a);
-                if (this._is_should_visit(url_a)) {
+                if (url_a && this._is_should_visit(url_a)) {
                     list.push(url_a);
                 }
             }
@@ -287,14 +287,18 @@ export default class Bot {
     }
     _get_full_url(url) {
         if (url && url.length > 0) {
-            let new_url = url_resolver.resolve(this.config.origin_url, url);
-            //clean Url - remove after #
-            new_url = this._clean_anchor_url(new_url);
-            // let size_of_new_url = new_url.length;
-            // if (new_url[size_of_new_url-1] == "/"){
-            //     return new_url.slice(0, size_of_new_url - 1);
-            // }
-            return new_url;
+           try{
+               let new_url = url_resolver.resolve(this.config.origin_url, url);
+               //clean Url - remove after #
+               new_url = this._clean_anchor_url(new_url);
+               // let size_of_new_url = new_url.length;
+               // if (new_url[size_of_new_url-1] == "/"){
+               //     return new_url.slice(0, size_of_new_url - 1);
+               // }
+               return new_url;
+           }catch(e){
+               return null;
+           }      
         }
     }
     async _get_html_by(url) {

@@ -1,5 +1,6 @@
 const Cheerio = require('cheerio')
 import Bot from "./Bot"
+var tr = require('textrank');
 
 export default class MyBot extends Bot{
     
