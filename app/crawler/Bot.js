@@ -155,7 +155,8 @@ export default class Bot {
                 return;
             }
             await Promise.all(this.getNextDepthUrls(queue_size).map(depth_url => {
-                return self.processPageWithDepth(depth_url[1], depth_url[0]+1);
+                if (Number.isInteger(depth_url[0]))
+                    return self.processPageWithDepth(depth_url[1], depth_url[0]+1);
             }));
         }
     }
