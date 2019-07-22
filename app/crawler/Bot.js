@@ -334,12 +334,13 @@ export default class Bot {
 
     _is_page_data(url_a) {
         // check prefix
+        let isPrefix = false;
         if (this._is_list_contain(this.config.page_data_prefix, url_a)) {
-            return true;
+            isPrefix = true;
         };
         // check regex pattern
         let matches_array = url_a.match(this.config.page_data_pattern);
-        return (matches_array != undefined && matches_array.length > 0)
+        return (matches_array != undefined && matches_array.length > 0 && isPrefix)
     }
 
     _is_should_visit(url_a) {
