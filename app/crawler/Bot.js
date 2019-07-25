@@ -22,7 +22,10 @@ const CONFIG_DEFAULT = {
     page_data_prefix: [],
     ignore_url: [],
     allway_visit: [],
-    page_data_pattern: '',
+    page_data_regex: [],
+    visit_regex: [],
+    ignore_regex: [],
+
     max_depth: -1,
     filter_storage: './storage/',
     max_url: 900000000
@@ -192,7 +195,7 @@ export default class Bot {
             let url_a = $(url_els[i]).prop('href');
             if (url_a) {
                 url_a = this._get_full_url(url_a);
-                if (this._is_should_visit(url_a)) {
+                if (this._is_should_visit(url_a) && this._is_ignore_visit(url_a) ) {
                     this.pushToAssignDepthList(url_a, depth);
                 }
             }
@@ -214,7 +217,7 @@ export default class Bot {
             let url_a = $(url_els[i]).prop('href');
             if (url_a) {
                 url_a = this._get_full_url(url_a);
-                if (this._is_should_visit(url_a)) {
+                if (this._is_should_visit(url_a) && this._is_ignore_visit(url_a)) {
                     this.pushToAssignList(url_a);
                 }
             }
@@ -279,7 +282,7 @@ export default class Bot {
             let url_a = $(url_els[i]).prop('href');
             if (url_a) {
                 url_a = this._get_full_url(url_a);
-                if (url_a && this._is_should_visit(url_a)) {
+                if (url_a && this._is_should_visit(url_a) && this._is_ignore_visit(url_a)) {
                     list.push(url_a);
                 }
             }
@@ -333,25 +336,24 @@ export default class Bot {
     }
 
     _is_page_data(url_a) {
-        // check prefix
-        let isPrefix = false;
-        if (this._is_list_contain(this.config.page_data_prefix, url_a)) {
-            isPrefix = true;
-        };
-        // check regex pattern
-        let matches_array = url_a.match(this.config.page_data_pattern);
-        return (matches_array != undefined && matches_array.length > 0 && isPrefix)
+        return _check_list_regex_match(url_a,this.config.page_data_regex);
     }
-
+    _check_list_regex_match = (url, regex_list)=> {
+        for (let i = 0; i < regex_list.length; i++){
+            let regex = regex_list[i];
+            if (regex && regex != ''){
+                if (url.match(regex) && url.match(regex).length > 0){
+                    return true
+                }
+            }
+       }
+       return false;
+    }
     _is_should_visit(url_a) {
-        // check prefix
-        if (!url_a || url_a.length>255){
-            return false;
-        }
-        if (this._is_list_contain(this.config.should_visit_prefix, url_a)) {
-            return true;
-        };
-        return false;
+        return _check_list_regex_match(url_a, this.config.visit_regex);
+    }
+    _is_ignore_visit(url_a) {
+        return _check_list_regex_match(url_a, this.config.ignore_regex);
     }
 
     _is_list_contain(list, x) {
