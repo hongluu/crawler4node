@@ -12,19 +12,31 @@ import MyBot from "./app/crawler/MyBot"
 //init log
 
 let tuoi_tre_config = {
-    name: 'tuoitre_vn',
-    origin_url: 'https://tuoitre.vn',
-    should_visit_prefix: ['https://tuoitre.vn'],
-    page_data_prefix: ['https://tuoitre.vn'],
-    should_visit_pattern: '',
-    page_data_pattern: '',
+    _id: '5ce8ca109bbaf40ed7b5bff0',
+    name: 'vnexpress_net',
+    origin_url: 'https://vnexpress.net',
+    should_visit_prefix: ['https://vnexpress.net'],
+    page_data_prefix: ['https://vnexpress.net'],
+    visit_regex: ['(https:\\/\\/vnexpress.net\\/kinh-doanh)','(https:\\/\\/vnexpress.net\\/thoi-su)'],
+    page_data_regex: ['(https:\\/\\/vnexpress.net)([A-Za-z0-9\\/-]{0,1000})(.html$)'],
+    ignore_regex: ['(https:\\/\\/vnexpress.net\\/the-gioi)'],
     max_depth: 0,
     time_delay: 10,
     content_selector: [
-        { name: 'title', selector: '#main-detail > div.w980 > h1' },
+        { name: 'title', selector: 'h1.title_news_detail' },
         {
             name: 'content',
-            selector: '#mainContentDetail h2,#main-detail-body p'
+            selector: '.container article.content_detail, .container .sidebar_1 .description'
+        },
+        {
+            name: 'category',
+            selector: 'body > section.cat_header.clearfix > ul > li > h4 > a'
+        },
+        {
+            name: 'strPostedAt',
+            selector: 'body > section.container > ' +
+                'section.wrap_sidebar_12 > section.sidebar_1 ' +
+                '> header > span'
         }
     ],
     proxyl: { host: '', port: '0', auth: { username: '', password: '' } },

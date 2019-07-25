@@ -25,7 +25,6 @@ const CONFIG_DEFAULT = {
     page_data_regex: [],
     visit_regex: [],
     ignore_regex: [],
-
     max_depth: -1,
     filter_storage: './storage/',
     max_url: 900000000
@@ -195,7 +194,7 @@ export default class Bot {
             let url_a = $(url_els[i]).prop('href');
             if (url_a) {
                 url_a = this._get_full_url(url_a);
-                if (this._is_should_visit(url_a) && this._is_ignore_visit(url_a) ) {
+                if (this._is_should_visit(url_a) && !this._is_ignore_visit(url_a) ) {
                     this.pushToAssignDepthList(url_a, depth);
                 }
             }
@@ -217,7 +216,7 @@ export default class Bot {
             let url_a = $(url_els[i]).prop('href');
             if (url_a) {
                 url_a = this._get_full_url(url_a);
-                if (this._is_should_visit(url_a) && this._is_ignore_visit(url_a)) {
+                if (this._is_should_visit(url_a) && !this._is_ignore_visit(url_a)) {
                     this.pushToAssignList(url_a);
                 }
             }
@@ -282,7 +281,7 @@ export default class Bot {
             let url_a = $(url_els[i]).prop('href');
             if (url_a) {
                 url_a = this._get_full_url(url_a);
-                if (url_a && this._is_should_visit(url_a) && this._is_ignore_visit(url_a)) {
+                if (url_a && this._is_should_visit(url_a) && !this._is_ignore_visit(url_a)) {
                     list.push(url_a);
                 }
             }
@@ -336,7 +335,7 @@ export default class Bot {
     }
 
     _is_page_data(url_a) {
-        return _check_list_regex_match(url_a,this.config.page_data_regex);
+        return this._check_list_regex_match(url_a,this.config.page_data_regex);
     }
     _check_list_regex_match = (url, regex_list)=> {
         for (let i = 0; i < regex_list.length; i++){
@@ -350,10 +349,12 @@ export default class Bot {
        return false;
     }
     _is_should_visit(url_a) {
-        return _check_list_regex_match(url_a, this.config.visit_regex);
+        if (this.config.visit_regex && this.config.visit_regex.length >0 )
+            return this._check_list_regex_match(url_a, this.config.visit_regex);
+        return url_a.startsWith(this.config.origin_url);
     }
     _is_ignore_visit(url_a) {
-        return _check_list_regex_match(url_a, this.config.ignore_regex);
+        return this._check_list_regex_match(url_a, this.config.ignore_regex);
     }
 
     _is_list_contain(list, x) {
